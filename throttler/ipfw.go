@@ -42,7 +42,7 @@ func (i *ipfwThrottler) check() string {
 	return ipfwCheck
 }
 
-func (d *ipfwThrottler) buildConfigCommand(config *Config) string {
+func (i *ipfwThrottler) buildConfigCommand(config *Config) string {
 	cmd := ipfwConfig
 	if config.Latency > 0 {
 		latencyStr := strconv.Itoa(config.Latency)
