@@ -6,7 +6,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/tylertreat/wirecutter/wirecutter"
+	"github.com/tylertreat/wiretap/wiretap"
 )
 
 const (
@@ -15,7 +15,7 @@ const (
 	any   = "any"
 )
 
-func setup(cutter wirecutter.Wirecutter, config *wirecutter.Config) {
+func setup(cutter wiretap.Wiretap, config *wiretap.Config) {
 	if cutter.Exists() {
 		fmt.Println("It looks like the packet rules are already setup")
 		os.Exit(1)
@@ -31,7 +31,7 @@ func setup(cutter wirecutter.Wirecutter, config *wirecutter.Config) {
 	fmt.Printf("Run `%s --mode %s` to reset\n", os.Args[0], stop)
 }
 
-func teardown(cutter wirecutter.Wirecutter) {
+func teardown(cutter wiretap.Wiretap) {
 	if !cutter.Exists() {
 		fmt.Println("It looks like the packet rules aren't setup")
 		os.Exit(1)
@@ -55,17 +55,17 @@ func main() {
 	packetLoss := flag.Float64("packet-loss", 0, "packet-loss rate")
 	flag.Parse()
 
-	config := &wirecutter.Config{
+	config := &wiretap.Config{
 		Host:       *host,
 		Latency:    *latency,
 		Bandwidth:  *bandwidth,
 		PacketLoss: *packetLoss,
 	}
 
-	var cutter wirecutter.Wirecutter
+	var cutter wiretap.Wiretap
 	switch runtime.GOOS {
 	case "darwin":
-		cutter = &wirecutter.DarwinWirecutter{}
+		cutter = &wiretap.DarwinWiretap{}
 	default:
 		fmt.Printf("I don't support your OS: %s", runtime.GOOS)
 		os.Exit(1)
