@@ -20,7 +20,7 @@ const (
 type DarwinWiretap struct{}
 
 func (d *DarwinWiretap) Setup(config *Config) error {
-	buildConfigCommand(config)
+	d.buildConfigCommand(config)
 	cmd := exec.Command("/bin/sh", "-c", createInboundPipe)
 	if err := cmd.Run(); err != nil {
 		return err
@@ -43,7 +43,7 @@ func (d *DarwinWiretap) Teardown() error {
 }
 
 func (d *DarwinWiretap) Exists() bool {
-	_, err := exec.Command("/bin/sh", "-c", checkInboundPipe).Output()
+	err := exec.Command("/bin/sh", "-c", checkInboundPipe).Run()
 	return err == nil
 }
 
@@ -51,8 +51,8 @@ func (d *DarwinWiretap) Check() string {
 	return check
 }
 
-func buildConfigCommand(config *Config) string {
-	cmd := `sudo ipfw pipe 1 config`
+func (d *DarwinWiretap) buildConfigCommand(config *Config) string {
+	cmd := "sudo ipfw pipe 1 config"
 	if config.Latency > 0 {
 		latencyStr := strconv.Itoa(config.Latency)
 		cmd = cmd + " delay " + latencyStr + "ms"

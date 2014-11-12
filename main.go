@@ -66,6 +66,8 @@ func main() {
 	switch runtime.GOOS {
 	case "darwin":
 		cutter = &wiretap.DarwinWiretap{}
+	case "linux":
+		cutter = &wiretap.LinuxWiretap{}
 	default:
 		fmt.Printf("I don't support your OS: %s", runtime.GOOS)
 		os.Exit(1)
