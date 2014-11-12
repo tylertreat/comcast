@@ -41,7 +41,7 @@ func (l *LinuxWiretap) buildConfigCommand(config *Config) string {
 
 	if config.Bandwidth > 0 {
 		bwStr := strconv.Itoa(config.Bandwidth)
-		cmd = cmd + " rate " + bwStr + " kbit"
+		cmd = cmd + " rate " + bwStr + "kbit"
 	}
 
 	if config.PacketLoss > 0 {
