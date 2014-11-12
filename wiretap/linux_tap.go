@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	teardown = `sudo tc qdisc del dev eth0 root netem`
-	check    = `sudo tc qdisc show | grep "netem"`
+	tcTeardown = `sudo tc qdisc del dev eth0 root netem`
+	tcExists   = `sudo tc qdisc show | grep "netem"`
+	tcCheck    = `sudo tc qdisc show`
 )
 
 type LinuxWiretap struct{}
@@ -19,11 +20,16 @@ func (l *LinuxWiretap) Setup(config *Config) error {
 }
 
 func (l *LinuxWiretap) Teardown() error {
-	return exec.Command("/bin/sh", "-c", teardown).Run()
+	return exec.Command("/bin/sh", "-c", tcTeardown).Run()
 }
 
 func (l *LinuxWiretap) Exists() bool {
-	err := exec.Command("/bin/sh", "-c", check).Run()
+	err := exec.Command("/bin/sh", "-c", tcExists).Run()
+	return err == nil
+}
+
+func (l *LinuxWiretap) Check() string {
+	return tcCheck
 }
 
 func (l *LinuxWiretap) buildConfigCommand(config *Config) string {
