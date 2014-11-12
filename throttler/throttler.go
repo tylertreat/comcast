@@ -18,6 +18,7 @@ const (
 	checkOSXVersion = "sw_vers -productVersion"
 )
 
+// Config specifies options for configuring packet filter rules.
 type Config struct {
 	Mode       string
 	Latency    int
@@ -64,6 +65,8 @@ func teardown(throttler throttler) {
 	fmt.Printf("Run `%s --mode %s` to start\n", os.Args[0], Start)
 }
 
+// Run executes the packet filter operation, either setting it up or tearing
+// it down.
 func Run(config *Config) {
 
 	var throttler throttler
