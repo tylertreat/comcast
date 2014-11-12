@@ -30,7 +30,7 @@ If you don't like running code that executes shell commands for you (despite it 
 
 ### Linux
 
-On Linux, you can use `iptables` to drop packets.
+On Linux, you can use `iptables` to drop incoming and outgoing packets.
 
 ```
 $ iptables -A INPUT -m statistic --mode random --probability 0.1 -j DROP
