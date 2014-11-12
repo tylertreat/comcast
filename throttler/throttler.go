@@ -18,20 +18,21 @@ const (
 	checkOSXVersion = "sw_vers -productVersion"
 )
 
-type config struct {
-	latency    int
-	bandwidth  int
-	packetLoss float64
+type Config struct {
+	Mode       string
+	Latency    int
+	Bandwidth  int
+	PacketLoss float64
 }
 
 type throttler interface {
-	setup(*config) error
+	setup(*Config) error
 	teardown() error
 	exists() bool
 	check() string
 }
 
-func setup(throttler throttler, config *config) {
+func setup(throttler throttler, config *Config) {
 	if throttler.exists() {
 		fmt.Println("It looks like the packet rules are already setup")
 		os.Exit(1)
@@ -63,12 +64,7 @@ func teardown(throttler throttler) {
 	fmt.Printf("Run `%s --mode %s` to start\n", os.Args[0], Start)
 }
 
-func Run(mode string, latency, bandwidth int, packetLoss float64) {
-	config := &config{
-		latency:    latency,
-		bandwidth:  bandwidth,
-		packetLoss: packetLoss,
-	}
+func Run(config *Config) {
 
 	var throttler throttler
 	switch runtime.GOOS {
@@ -87,13 +83,13 @@ func Run(mode string, latency, bandwidth int, packetLoss float64) {
 		os.Exit(1)
 	}
 
-	switch mode {
+	switch config.Mode {
 	case Start:
 		setup(throttler, config)
 	case stop:
 		teardown(throttler)
 	default:
-		fmt.Printf("I don't know what this mode is: %s\n", mode)
+		fmt.Printf("I don't know what this mode is: %s\n", config.Mode)
 		fmt.Printf("Try '%s' or '%s'\n", Start, stop)
 		os.Exit(1)
 	}

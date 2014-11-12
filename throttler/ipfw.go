@@ -16,7 +16,7 @@ const (
 
 type ipfwThrottler struct{}
 
-func (i *ipfwThrottler) setup(config *config) error {
+func (i *ipfwThrottler) setup(config *Config) error {
 	fmt.Println(ipfwAddPipe)
 	if err := exec.Command("/bin/sh", "-c", ipfwAddPipe).Run(); err != nil {
 		return err
@@ -42,20 +42,20 @@ func (i *ipfwThrottler) check() string {
 	return ipfwCheck
 }
 
-func (d *ipfwThrottler) buildConfigCommand(config *config) string {
+func (d *ipfwThrottler) buildConfigCommand(config *Config) string {
 	cmd := ipfwConfig
-	if config.latency > 0 {
-		latencyStr := strconv.Itoa(config.latency)
+	if config.Latency > 0 {
+		latencyStr := strconv.Itoa(config.Latency)
 		cmd = cmd + " delay " + latencyStr + "ms"
 	}
 
-	if config.bandwidth > 0 {
-		bwStr := strconv.Itoa(config.bandwidth)
+	if config.Bandwidth > 0 {
+		bwStr := strconv.Itoa(config.Bandwidth)
 		cmd = cmd + " bw " + bwStr + "Kbit/s"
 	}
 
-	if config.packetLoss > 0 {
-		plrStr := strconv.FormatFloat(config.packetLoss, 'f', 2, 64)
+	if config.PacketLoss > 0 {
+		plrStr := strconv.FormatFloat(config.PacketLoss, 'f', 2, 64)
 		cmd = cmd + " plr " + plrStr
 	}
 

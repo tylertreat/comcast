@@ -15,7 +15,7 @@ const (
 
 type tcThrottler struct{}
 
-func (t *tcThrottler) setup(config *config) error {
+func (t *tcThrottler) setup(config *Config) error {
 	cmd := t.buildConfigCommand(config)
 	fmt.Println(cmd)
 	return exec.Command("/bin/sh", "-c", cmd).Run()
@@ -36,20 +36,20 @@ func (t *tcThrottler) check() string {
 	return tcCheck
 }
 
-func (t *tcThrottler) buildConfigCommand(config *config) string {
+func (t *tcThrottler) buildConfigCommand(config *Config) string {
 	cmd := tcAdd
-	if config.latency > 0 {
-		latencyStr := strconv.Itoa(config.latency)
+	if config.Latency > 0 {
+		latencyStr := strconv.Itoa(config.Latency)
 		cmd = cmd + " delay " + latencyStr + "ms"
 	}
 
-	if config.bandwidth > 0 {
-		bwStr := strconv.Itoa(config.bandwidth)
+	if config.Bandwidth > 0 {
+		bwStr := strconv.Itoa(config.Bandwidth)
 		cmd = cmd + " rate " + bwStr + "kbit"
 	}
 
-	if config.packetLoss > 0 {
-		lossStr := strconv.FormatFloat(config.packetLoss*100, 'f', 0, 64)
+	if config.PacketLoss > 0 {
+		lossStr := strconv.FormatFloat(config.PacketLoss*100, 'f', 0, 64)
 		cmd = cmd + " loss " + lossStr + "%"
 	}
 

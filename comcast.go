@@ -15,5 +15,12 @@ func main() {
 	packetLoss := flag.Float64("packet-loss", 0, "packet-loss rate")
 	flag.Parse()
 
-	throttler.Run(*mode, *latency, *bandwidth, *packetLoss)
+	config := &throttler.Config{
+		Mode:       *mode,
+		Latency:    *latency,
+		Bandwidth:  *bandwidth,
+		PacketLoss: *packetLoss,
+	}
+
+	throttler.Run(config)
 }
