@@ -67,8 +67,7 @@ func Run(mode string, latency, bandwidth int, packetLoss float64) {
 	var tap Wiretap
 	switch runtime.GOOS {
 	case "darwin":
-		//tap = &DarwinWiretap{}
-		tap = &LinuxWiretap{}
+		tap = &DarwinWiretap{}
 	case "linux":
 		tap = &LinuxWiretap{}
 	default:

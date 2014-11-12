@@ -7,9 +7,10 @@ import (
 )
 
 const (
+	tcAdd      = `sudo tc qdisc add dev eth0 root netem`
 	tcTeardown = `sudo tc qdisc del dev eth0 root netem`
 	tcExists   = `sudo tc qdisc show | grep "netem"`
-	tcCheck    = `sudo tc qdisc show`
+	tcCheck    = `sudo tc -s qdisc`
 )
 
 type LinuxWiretap struct{}
@@ -33,7 +34,7 @@ func (l *LinuxWiretap) Check() string {
 }
 
 func (l *LinuxWiretap) buildConfigCommand(config *Config) string {
-	cmd := "sudo tc qdisc add dev eth0 root netem"
+	cmd := tcAdd
 	if config.Latency > 0 {
 		latencyStr := strconv.Itoa(config.Latency)
 		cmd = cmd + " delay " + latencyStr + "ms"
