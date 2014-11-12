@@ -3,13 +3,19 @@ package throttler
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"runtime"
+	"strings"
 )
 
 const (
-	Start = "start"
-	stop  = "stop"
-	any   = "any"
+	Start           = "start"
+	stop            = "stop"
+	any             = "any"
+	linux           = "linux"
+	darwin          = "darwin"
+	freebsd         = "freebsd"
+	checkOSXVersion = "sw_vers -productVersion"
 )
 
 type config struct {
@@ -66,9 +72,15 @@ func Run(mode string, latency, bandwidth int, packetLoss float64) {
 
 	var throttler throttler
 	switch runtime.GOOS {
-	case "darwin":
+	case darwin, freebsd:
+		if runtime.GOOS == darwin && !osxVersionSupported() {
+			// ipfw was removed in OSX 10.10 in favor of pfctl.
+			// TODO: add support for pfctl.
+			fmt.Println("I don't support your version of OSX")
+			os.Exit(1)
+		}
 		throttler = &ipfwThrottler{}
-	case "linux":
+	case linux:
 		throttler = &tcThrottler{}
 	default:
 		fmt.Printf("I don't support your OS: %s\n", runtime.GOOS)
@@ -85,4 +97,12 @@ func Run(mode string, latency, bandwidth int, packetLoss float64) {
 		fmt.Printf("Try '%s' or '%s'\n", Start, stop)
 		os.Exit(1)
 	}
+}
+
+func osxVersionSupported() bool {
+	v, err := exec.Command("/bin/sh", "-c", checkOSXVersion).Output()
+	if err != nil {
+		return false
+	}
+	return !strings.HasPrefix(string(v), "10.10")
 }

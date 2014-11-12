@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	// TODO: add support for specific host/port.
 	mode := flag.String("mode", throttler.Start, "start or stop packet controls")
 	latency := flag.Int("latency", -1, "latency to add in ms")
 	bandwidth := flag.Int("bandwidth", -1, "bandwidth limit in kb/s")
