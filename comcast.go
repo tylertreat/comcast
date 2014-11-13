@@ -9,18 +9,18 @@ import (
 func main() {
 	// TODO: add support for specific host/port.
 	// Also support for other options like packet reordering, duplication, etc.
-	mode := flag.String("mode", throttler.Start, "start or stop packet controls")
-	latency := flag.Int("latency", -1, "latency to add in ms")
-	bandwidth := flag.Int("bandwidth", -1, "bandwidth limit in kb/s")
-	packetLoss := flag.Float64("packet-loss", 0, "packet-loss rate")
+	var (
+		mode       = flag.String("mode", throttler.Start, "start or stop packet controls")
+		latency    = flag.Int("latency", -1, "latency to add in ms")
+		bandwidth  = flag.Int("bandwidth", -1, "bandwidth limit in kb/s")
+		packetLoss = flag.Float64("packet-loss", 0, "packet-loss rate")
+	)
 	flag.Parse()
 
-	config := &throttler.Config{
+	throttler.Run(&throttler.Config{
 		Mode:       *mode,
 		Latency:    *latency,
 		Bandwidth:  *bandwidth,
 		PacketLoss: *packetLoss,
-	}
-
-	throttler.Run(config)
+	})
 }
