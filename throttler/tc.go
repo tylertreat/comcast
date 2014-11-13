@@ -15,8 +15,8 @@ const (
 
 type tcThrottler struct{}
 
-func (t *tcThrottler) setup(config *Config) error {
-	cmd := t.buildConfigCommand(config)
+func (t *tcThrottler) setup(c *Config) error {
+	cmd := t.buildConfigCommand(c)
 	fmt.Println(cmd)
 	return exec.Command("/bin/sh", "-c", cmd).Run()
 }
@@ -28,29 +28,26 @@ func (t *tcThrottler) teardown() error {
 
 func (t *tcThrottler) exists() bool {
 	fmt.Println(tcExists)
-	err := exec.Command("/bin/sh", "-c", tcExists).Run()
-	return err == nil
+	return exec.Command("/bin/sh", "-c", tcExists).Run() == nil
 }
 
 func (t *tcThrottler) check() string {
 	return tcCheck
 }
 
-func (t *tcThrottler) buildConfigCommand(config *Config) string {
+func (t *tcThrottler) buildConfigCommand(c *Config) string {
 	cmd := tcAdd
-	if config.Latency > 0 {
-		latencyStr := strconv.Itoa(config.Latency)
-		cmd = cmd + " delay " + latencyStr + "ms"
+
+	if c.Latency > 0 {
+		cmd = cmd + " delay " + strconv.Itoa(c.Latency) + "ms"
 	}
 
-	if config.Bandwidth > 0 {
-		bwStr := strconv.Itoa(config.Bandwidth)
-		cmd = cmd + " rate " + bwStr + "kbit"
+	if c.Bandwidth > 0 {
+		cmd = cmd + " rate " + strconv.Itoa(c.Bandwidth) + "kbit"
 	}
 
-	if config.PacketLoss > 0 {
-		lossStr := strconv.FormatFloat(config.PacketLoss*100, 'f', 0, 64)
-		cmd = cmd + " loss " + lossStr + "%"
+	if c.PacketLoss > 0 {
+		cmd = cmd + " loss " + strconv.FormatFloat(c.PacketLoss*100, 'f', 0, 64) + "%"
 	}
 
 	return cmd
