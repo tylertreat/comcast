@@ -16,13 +16,13 @@ const (
 
 type ipfwThrottler struct{}
 
-func (i *ipfwThrottler) setup(config *Config) error {
+func (i *ipfwThrottler) setup(c *Config) error {
 	fmt.Println(ipfwAddPipe)
 	if err := exec.Command("/bin/sh", "-c", ipfwAddPipe).Run(); err != nil {
 		return err
 	}
 
-	configCmd := i.buildConfigCommand(config)
+	configCmd := i.buildConfigCommand(c)
 	fmt.Println(configCmd)
 	return exec.Command("/bin/sh", "-c", configCmd).Run()
 }
@@ -34,29 +34,26 @@ func (i *ipfwThrottler) teardown() error {
 
 func (i *ipfwThrottler) exists() bool {
 	fmt.Println(ipfwExists)
-	err := exec.Command("/bin/sh", "-c", ipfwExists).Run()
-	return err == nil
+	return exec.Command("/bin/sh", "-c", ipfwExists).Run() == nil
 }
 
 func (i *ipfwThrottler) check() string {
 	return ipfwCheck
 }
 
-func (i *ipfwThrottler) buildConfigCommand(config *Config) string {
+func (i *ipfwThrottler) buildConfigCommand(c *Config) string {
 	cmd := ipfwConfig
-	if config.Latency > 0 {
-		latencyStr := strconv.Itoa(config.Latency)
-		cmd = cmd + " delay " + latencyStr + "ms"
+
+	if c.Latency > 0 {
+		cmd = cmd + " delay " + strconv.Itoa(c.Latency) + "ms"
 	}
 
-	if config.Bandwidth > 0 {
-		bwStr := strconv.Itoa(config.Bandwidth)
-		cmd = cmd + " bw " + bwStr + "Kbit/s"
+	if c.Bandwidth > 0 {
+		cmd = cmd + " bw " + strconv.Itoa(c.Bandwidth) + "Kbit/s"
 	}
 
-	if config.PacketLoss > 0 {
-		plrStr := strconv.FormatFloat(config.PacketLoss, 'f', 2, 64)
-		cmd = cmd + " plr " + plrStr
+	if c.PacketLoss > 0 {
+		cmd = cmd + " plr " + strconv.FormatFloat(c.PacketLoss, 'f', 2, 64)
 	}
 
 	return cmd

@@ -34,43 +34,42 @@ type throttler interface {
 	check() string
 }
 
-func setup(throttler throttler, config *Config) {
-	if throttler.exists() {
+func setup(t throttler, c *Config) {
+	if t.exists() {
 		fmt.Println("It looks like the packet rules are already setup")
 		os.Exit(1)
 	}
 
-	if err := throttler.setup(config); err != nil {
+	if err := t.setup(c); err != nil {
 		fmt.Println("I couldn't setup the packet rules")
 		os.Exit(1)
 	}
 
 	fmt.Println("Packet rules setup...")
-	fmt.Printf("Run `%s` to double check\n", throttler.check())
+	fmt.Printf("Run `%s` to double check\n", t.check())
 	fmt.Printf("Run `%s --mode %s` to reset\n", os.Args[0], stop)
 }
 
-func teardown(throttler throttler) {
-	if !throttler.exists() {
+func teardown(t throttler) {
+	if !t.exists() {
 		fmt.Println("It looks like the packet rules aren't setup")
 		os.Exit(1)
 	}
 
-	if err := throttler.teardown(); err != nil {
+	if err := t.teardown(); err != nil {
 		fmt.Println("Failed to stop packet controls")
 		os.Exit(1)
 	}
 
 	fmt.Println("Packet rules stopped...")
-	fmt.Printf("Run `%s` to double check\n", throttler.check())
+	fmt.Printf("Run `%s` to double check\n", t.check())
 	fmt.Printf("Run `%s --mode %s` to start\n", os.Args[0], Start)
 }
 
 // Run executes the packet filter operation, either setting it up or tearing
 // it down.
-func Run(config *Config) {
-
-	var throttler throttler
+func Run(c *Config) {
+	var t throttler
 	switch runtime.GOOS {
 	case darwin, freebsd:
 		if runtime.GOOS == darwin && !osxVersionSupported() {
@@ -79,22 +78,22 @@ func Run(config *Config) {
 			fmt.Println("I don't support your version of OSX")
 			os.Exit(1)
 		}
-		throttler = &ipfwThrottler{}
+		t = &ipfwThrottler{}
 	case linux:
-		throttler = &tcThrottler{}
+		t = &tcThrottler{}
 	default:
 		fmt.Printf("I don't support your OS: %s\n", runtime.GOOS)
 		os.Exit(1)
 	}
 
-	switch config.Mode {
+	switch c.Mode {
 	case Start:
-		setup(throttler, config)
+		setup(t, c)
 	case stop:
-		teardown(throttler)
+		teardown(t)
 	default:
-		fmt.Printf("I don't know what this mode is: %s\n", config.Mode)
-		fmt.Printf("Try '%s' or '%s'\n", Start, stop)
+		fmt.Printf("I don't know what this mode is: %s\n", c.Mode)
+		fmt.Printf("Try %q or %q\n", Start, stop)
 		os.Exit(1)
 	}
 }
