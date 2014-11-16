@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	tcAdd      = `sudo tc qdisc add dev eth0 root netem`
-	tcTeardown = `sudo tc qdisc del dev eth0 root netem`
+	tcAdd      = `sudo tc qdisc add`
+	tcTeardown = `sudo tc qdisc del`
 	tcExists   = `sudo tc qdisc show | grep "netem"`
 	tcCheck    = `sudo tc -s qdisc`
 )
@@ -21,8 +21,9 @@ func (t *tcThrottler) setup(c *Config) error {
 	return exec.Command("/bin/sh", "-c", cmd).Run()
 }
 
-func (t *tcThrottler) teardown() error {
-	fmt.Println(tcTeardown)
+func (t *tcThrottler) teardown(c *Config) error {
+	cmd := t.buildTeardownCommand(c)
+	fmt.Println(cmd)
 	return exec.Command("/bin/sh", "-c", tcTeardown).Run()
 }
 
@@ -35,8 +36,18 @@ func (t *tcThrottler) check() string {
 	return tcCheck
 }
 
+func (t *tcThrottler) buildTeardownCommand(c *Config) string {
+	cmd := tcTeardown;
+
+	cmd = cmd + " dev " + c.Device + " root netem"
+
+	return cmd
+}
+
 func (t *tcThrottler) buildConfigCommand(c *Config) string {
 	cmd := tcAdd
+
+	cmd = cmd + " dev " + c.Device + " root netem"
 
 	if c.Latency > 0 {
 		cmd = cmd + " delay " + strconv.Itoa(c.Latency) + "ms"

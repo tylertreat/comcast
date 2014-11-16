@@ -27,7 +27,7 @@ func (i *ipfwThrottler) setup(c *Config) error {
 	return exec.Command("/bin/sh", "-c", configCmd).Run()
 }
 
-func (i *ipfwThrottler) teardown() error {
+func (i *ipfwThrottler) teardown(_ *Config) error {
 	fmt.Println(ipfwTeardown)
 	return exec.Command("/bin/sh", "-c", ipfwTeardown).Run()
 }

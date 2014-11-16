@@ -21,6 +21,7 @@ const (
 
 // Config specifies options for configuring packet filter rules.
 type Config struct {
+	Device     string
 	Mode       string
 	Latency    int
 	Bandwidth  int
@@ -29,7 +30,7 @@ type Config struct {
 
 type throttler interface {
 	setup(*Config) error
-	teardown() error
+	teardown(*Config) error
 	exists() bool
 	check() string
 }
@@ -50,13 +51,13 @@ func setup(t throttler, c *Config) {
 	fmt.Printf("Run `%s --mode %s` to reset\n", os.Args[0], stop)
 }
 
-func teardown(t throttler) {
+func teardown(t throttler, c *Config) {
 	if !t.exists() {
 		fmt.Println("It looks like the packet rules aren't setup")
 		os.Exit(1)
 	}
 
-	if err := t.teardown(); err != nil {
+	if err := t.teardown(c); err != nil {
 		fmt.Println("Failed to stop packet controls")
 		os.Exit(1)
 	}
@@ -90,7 +91,7 @@ func Run(c *Config) {
 	case Start:
 		setup(t, c)
 	case stop:
-		teardown(t)
+		teardown(t, c)
 	default:
 		fmt.Printf("I don't know what this mode is: %s\n", c.Mode)
 		fmt.Printf("Try %q or %q\n", Start, stop)
