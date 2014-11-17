@@ -12,10 +12,10 @@ $ go get github.com/tylertreat/comcast
 
 ## Usage
 
-Currently, Comcast supports just three options: latency, bandwidth, and packet loss.
+Currently, Comcast supports just four options: device, latency, bandwidth, and packet loss.
 
 ```
-$ comcast --latency=250 --bandwidth=1000 --packet-loss=0.1
+$ comcast --device=eth0 --latency=250 --bandwidth=1000 --packet-loss=0.1
 ```
 
 This will add 250ms of latency, limit bandwidth to 1Mbps, and drop 10% of packets. To turn this off, run the following:
