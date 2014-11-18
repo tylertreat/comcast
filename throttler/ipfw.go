@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	ipfwAddPipe  = `sudo ipfw add 1 pipe 1 ip from any to any`
+	ipfwAddPipe  = `sudo ipfw add 1 pipe 1 ip from any to any via `
 	ipfwTeardown = `sudo ipfw delete 1`
 	ipfwConfig   = `sudo ipfw pipe 1 config`
 	ipfwExists   = `sudo ipfw list | grep "pipe 1"`
@@ -17,8 +17,8 @@ const (
 type ipfwThrottler struct{}
 
 func (i *ipfwThrottler) setup(c *Config) error {
-	fmt.Println(ipfwAddPipe)
-	if err := exec.Command("/bin/sh", "-c", ipfwAddPipe).Run(); err != nil {
+	fmt.Println(ipfwAddPipe + c.Device)
+	if err := exec.Command("/bin/sh", "-c", ipfwAddPipe+c.Device).Run(); err != nil {
 		return err
 	}
 
@@ -55,8 +55,6 @@ func (i *ipfwThrottler) buildConfigCommand(c *Config) string {
 	if c.PacketLoss > 0 {
 		cmd = cmd + " plr " + strconv.FormatFloat(c.PacketLoss, 'f', 2, 64)
 	}
-
-	cmd = cmd + " via " + c.Device
 
 	return cmd
 }
