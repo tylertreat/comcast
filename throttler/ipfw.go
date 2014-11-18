@@ -56,5 +56,7 @@ func (i *ipfwThrottler) buildConfigCommand(c *Config) string {
 		cmd = cmd + " plr " + strconv.FormatFloat(c.PacketLoss, 'f', 2, 64)
 	}
 
+	cmd = cmd + " via " + c.Device
+
 	return cmd
 }
