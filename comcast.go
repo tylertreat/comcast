@@ -19,7 +19,7 @@ func main() {
 	flag.Parse()
 
 	throttler.Run(&throttler.Config{
-		Device:     *dev,
+		Device:     *device,
 		Mode:       *mode,
 		Latency:    *latency,
 		Bandwidth:  *bandwidth,
