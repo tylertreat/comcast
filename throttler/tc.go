@@ -24,7 +24,7 @@ func (t *tcThrottler) setup(c *Config) error {
 func (t *tcThrottler) teardown(c *Config) error {
 	cmd := t.buildTeardownCommand(c)
 	fmt.Println(cmd)
-	return exec.Command("/bin/sh", "-c", tcTeardown).Run()
+	return exec.Command("/bin/sh", "-c", cmd).Run()
 }
 
 func (t *tcThrottler) exists() bool {
@@ -37,7 +37,7 @@ func (t *tcThrottler) check() string {
 }
 
 func (t *tcThrottler) buildTeardownCommand(c *Config) string {
-	cmd := tcTeardown;
+	cmd := tcTeardown
 
 	cmd = cmd + " dev " + c.Device + " root netem"
 
