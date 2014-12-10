@@ -1,4 +1,5 @@
-# Comcast
+#Comcast
+
 
 Testing distributed systems under hard failures like network partitions and instance termination is critical, but it's also important we test them under [less catastrophic conditions](http://www.bravenewgeek.com/sometimes-kill-9-isnt-enough/) because this is what they most often experience. Comcast is a tool designed to simulate common network problems like latency, bandwidth restrictions, and dropped/reordered/corrupted packets.
 
@@ -67,3 +68,16 @@ $ ipfw delete 1
 ```
 
 *Note: `ipfw` was removed in OSX Yosemite in favor of `pfctl`.*
+
+## Network Condition Profiles
+
+Here's a list of network conditions to that you can plug into Comcast. Please add any more that you may come across.
+
+Name | Latency | Bandwidth | Packet-loss
+:-- | --: | --: | --:
+GPRS good | 500 | 50 | 2
+EDGE good | 300 | 250 | 1.5
+3G(HSDPA) good | 250 | 750 | 1.5
+DSL (poor) | 70 | 2000 | 2
+DSL (good) | 40 | 8000 | 0.5
+WIFI (good) | 40 | 30000 | 0.2
