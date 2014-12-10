@@ -78,7 +78,7 @@ Network Condition Profiles
 Here's a rough list of network conditions to that you can plug into Comcast. Please add any more that you may come across.
 
 Name | latency | bandwidth | packet-loss
-:- | -: | -: | -:
+:-- | --: | --: | --:
 GPRS good | 500 | 50 | 2
 EDGE good | 300 | 250 | 1.5
 3G(HSDPA) good | 250 | 750 | 1.5
