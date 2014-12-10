@@ -1,19 +1,17 @@
-Comcast
-=======
+#Comcast
+
 
 Testing distributed systems under hard failures like network partitions and instance termination is critical, but it's also important we test them under [less catastrophic conditions](http://www.bravenewgeek.com/sometimes-kill-9-isnt-enough/) because this is what they most often experience. Comcast is a tool designed to simulate common network problems like latency, bandwidth restrictions, and dropped/reordered/corrupted packets.
 
 It works by wrapping up some system tools in a portable(ish) way. On BSD-derived systems such as OSX, we use tools like `ipfw` and `pfctl` to inject failure. On Linux, we use `iptables` and `tc`. Comcast is merely a thin wrapper around these controls.
 
-Installation
-------------
+## Installation
 
 ```
 $ go get github.com/tylertreat/comcast
 ```
 
-Usage
------
+## Usage
 
 Currently, Comcast supports just four options: device, latency, bandwidth, and packet loss.
 
@@ -27,8 +25,7 @@ This will add 250ms of latency, limit bandwidth to 1Mbps, and drop 10% of packet
 $ comcast --mode stop
 ```
 
-I don't trust you, this code sucks, I hate Go, etc.
----------------------------------------------------
+## I don't trust you, this code sucks, I hate Go, etc.
 
 If you don't like running code that executes shell commands for you (despite it being open source, so you can read it and change the code) or want finer-grained control, you can run them directly instead. Read the man pages on these things for more details.
 
@@ -72,8 +69,7 @@ $ ipfw delete 1
 
 *Note: `ipfw` was removed in OSX Yosemite in favor of `pfctl`.*
 
-Network Condition Profiles
---------------------------
+## Network Condition Profiles
 
 Here's a list of network conditions to that you can plug into Comcast. Please add any more that you may come across.
 
