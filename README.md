@@ -83,3 +83,4 @@ EDGE good | 300 | 250 | 1.5
 DSL (poor) | 70 | 2000 | 2
 DSL (good) | 40 | 8000 | 0.5
 WIFI (good) | 40 | 30000 | 0.2
+Satellite | 1500 | - | 0.2
