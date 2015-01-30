@@ -12,16 +12,16 @@ import (
 func main() {
 	// TODO: Add support for other options like packet reordering, duplication, etc.
 	var (
-		device      = flag.String("device", "", "interface (device) to use")
-		mode        = flag.String("mode", throttler.Start, "start or stop packet controls")
-		latency     = flag.Int("latency", -1, "latency to add in ms")
-		targetbw    = flag.Int("target-bw", -1, "target bandwidth limit in kb/s (slow-lane)")
-		defaultbw   = flag.Int("default-bw", -1, "default bandwidth limit in kb/s (fast-lane)")
-		packetLoss  = flag.Float64("packet-loss", 0, "packet-loss rate")
-		targetaddr  = flag.String("target-addr", "", "target addresses, (eg: 10.0.0.1 or 10.0.0.0/24 or 10.0.0.1,192.168.0.0/24)")
-		targetport  = flag.String("target-port", "", "target port(s) (eg: 80 or 1:65535 or 22,80,443,1000:1010)")
-		targetproto = flag.String("target-proto", "", "target protocol TCP/UDP (eg: tcp or tcp,udp or icmp)")
-		dryrun      = flag.Bool("dry-run", false, "specifies whether or not to actually commit the rule changes")
+		device      = flag.String("device", "", "Interface (device) to use (defaults to eth0 where applicable)")
+		mode        = flag.String("mode", throttler.Start, "Start or stop packet controls")
+		latency     = flag.Int("latency", -1, "Latency to add in ms")
+		targetbw    = flag.Int("target-bw", -1, "Target bandwidth limit in kbit/s (slow-lane)")
+		defaultbw   = flag.Int("default-bw", -1, "Default bandwidth limit in kbit/s (fast-lane)")
+		packetLoss  = flag.String("packet-loss", "0", "Packet loss percentage (eg: 0.1%%)")
+		targetaddr  = flag.String("target-addr", "", "Target addresses, (eg: 10.0.0.1 or 10.0.0.0/24 or 10.0.0.1,192.168.0.0/24)")
+		targetport  = flag.String("target-port", "", "Target port(s) (eg: 80 or 1:65535 or 22,80,443,1000:1010)")
+		targetproto = flag.String("target-proto", "", "Target protocol TCP/UDP (eg: tcp or tcp,udp or icmp)")
+		dryrun      = flag.Bool("dry-run", false, "Specifies whether or not to actually commit the rule changes")
 		//icmptype    = flag.String("icmp-type", "", "icmp message type (eg: reply or reply,request)") //TODO: Maybe later :3
 	)
 	flag.Parse()
@@ -32,12 +32,24 @@ func main() {
 		Latency:          *latency,
 		TargetBandwidth:  *targetbw,
 		DefaultBandwidth: *defaultbw,
-		PacketLoss:       *packetLoss,
+		PacketLoss:       parseLoss(*packetLoss),
 		TargetIps:        parseAddrs(*targetaddr),
 		TargetPorts:      parsePorts(*targetport),
 		TargetProtos:     parseProtos(*targetproto),
 		DryRun:           *dryrun,
 	})
+}
+
+func parseLoss(loss string) float64 {
+	val := loss
+	if strings.Contains(loss, "%") {
+		val = loss[:len(loss)-1]
+	}
+	l, err := strconv.ParseFloat(val, 64)
+	if err != nil {
+		log.Fatalln("Incorrectly specified packet loss:", loss)
+	}
+	return l
 }
 
 func parseAddrs(addrs string) []string {
@@ -54,7 +66,7 @@ func parseAddrs(addrs string) []string {
 				if err == nil {
 					parsed = append(parsed, net.String())
 				} else {
-					log.Fatalln("Incorrectly specified target IP or CIDR", adr)
+					log.Fatalln("Incorrectly specified target IP or CIDR:", adr)
 				}
 			}
 		}

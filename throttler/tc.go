@@ -122,7 +122,7 @@ func addNetemRule(c *Config) error {
 	}
 
 	if c.PacketLoss > 0 {
-		strs = append(strs, fmt.Sprintf(tcLoss, strconv.FormatFloat(c.PacketLoss*100, 'f', 0, 64)))
+		strs = append(strs, fmt.Sprintf(tcLoss, strconv.FormatFloat(c.PacketLoss, 'f', 2, 64)))
 	}
 
 	cmd := strings.Join(strs, " ")
@@ -280,11 +280,10 @@ func delRootQDisc(c *Config) error {
 // }
 
 func (t *tcThrottler) exists(c *Config) bool {
-	DRY = c.DryRun
-	err := runCommand(tcExists)
-	if DRY {
-		return true
+	if c.DryRun {
+		return false
 	}
+	err := runCommand(tcExists)
 	return err == nil
 }
 

@@ -53,7 +53,7 @@ func (i *ipfwThrottler) buildConfigCommand(c *Config) string {
 	}
 
 	if c.PacketLoss > 0 {
-		cmd = cmd + " plr " + strconv.FormatFloat(c.PacketLoss, 'f', 2, 64)
+		cmd = cmd + " plr " + strconv.FormatFloat(c.PacketLoss/100, 'f', 4, 64)
 	}
 
 	return cmd
