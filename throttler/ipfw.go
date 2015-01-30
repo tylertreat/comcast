@@ -32,7 +32,7 @@ func (i *ipfwThrottler) teardown(_ *Config) error {
 	return exec.Command("/bin/sh", "-c", ipfwTeardown).Run()
 }
 
-func (i *ipfwThrottler) exists() bool {
+func (i *ipfwThrottler) exists(_ *Config) bool {
 	fmt.Println(ipfwExists)
 	return exec.Command("/bin/sh", "-c", ipfwExists).Run() == nil
 }
@@ -48,8 +48,8 @@ func (i *ipfwThrottler) buildConfigCommand(c *Config) string {
 		cmd = cmd + " delay " + strconv.Itoa(c.Latency) + "ms"
 	}
 
-	if c.Bandwidth > 0 {
-		cmd = cmd + " bw " + strconv.Itoa(c.Bandwidth) + "Kbit/s"
+	if c.TargetBandwidth > 0 {
+		cmd = cmd + " bw " + strconv.Itoa(c.TargetBandwidth) + "Kbit/s"
 	}
 
 	if c.PacketLoss > 0 {
