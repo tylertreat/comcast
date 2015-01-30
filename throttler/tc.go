@@ -199,23 +199,6 @@ func (t *tcThrottler) teardown(c *Config) error {
 		return err
 	}
 
-	// Apparently, removing the root qdisc we set up kill all the sub classes too!!!
-
-	// err = delDefaultClass(c) //The default class for all traffic that isn't classified
-	// if err != nil {
-	// 	return err
-	// }
-
-	// err = delTargetclass(c) //The class that the network emulator rule is assigned
-	// if err != nil {
-	// 	return err
-	// }
-
-	// err = delNetemRule(c) //The network emulator rule that contains the desired behavior
-	// if err != nil {
-	// 	return err
-	// }
-
 	return nil
 }
 
@@ -249,35 +232,6 @@ func delRootQDisc(c *Config) error {
 
 	return runCommand(cmd)
 }
-
-// func delDefaultClass(c *Config) error {
-// 	//Delete the default Class
-// 	def := fmt.Sprintf(tcDefaultClass, c.Device)
-
-// 	strs := []string{tcDelClass, def}
-// 	cmd := strings.Join(strs, " ")
-
-// 	return runCommand(cmd)
-// }
-
-// func delTargetclass(c *Config) error {
-// 	//Delete the target Class
-// 	tar := fmt.Sprintf(tcTargetClass, c.Device)
-// 	strs := []string{tcDelClass, tar}
-// 	cmd := strings.Join(strs, " ")
-
-// 	return runCommand(cmd)
-// }
-
-// func delNetemRule(c *Config) error {
-// 	//Delete the Network Emulator rule
-// 	net := fmt.Sprintf(tcNetemRule, c.Device)
-
-// 	strs := []string{tcDelQDisc, net}
-// 	cmd := strings.Join(strs, " ")
-
-// 	return runCommand(cmd)
-// }
 
 func (t *tcThrottler) exists(c *Config) bool {
 	if c.DryRun {
