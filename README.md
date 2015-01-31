@@ -84,6 +84,7 @@ Here's a list of network conditions to that you can plug into Comcast. Please ad
 
 Name | Latency | Bandwidth | Packet-loss
 :-- | --: | --: | --:
+DIALUP good | 40 | 185 | 2
 GPRS good | 500 | 50 | 2
 EDGE good | 300 | 250 | 1.5
 3G(HSDPA) good | 250 | 750 | 1.5
