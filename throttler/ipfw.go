@@ -15,8 +15,6 @@ const (
 type ipfwThrottler struct{}
 
 func (i *ipfwThrottler) setup(c *Config) error {
-	DRY = c.DryRun
-
 	cmd := ipfwAddPipe + c.Device
 	err := runCommand(cmd)
 	if err != nil {
@@ -33,7 +31,10 @@ func (i *ipfwThrottler) teardown(_ *Config) error {
 	return err
 }
 
-func (i *ipfwThrottler) exists(_ *Config) bool {
+func (i *ipfwThrottler) exists() bool {
+	if DRY {
+		return false
+	}
 	err := runCommand(ipfwExists)
 	return err == nil
 }
