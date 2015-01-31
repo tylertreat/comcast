@@ -25,7 +25,7 @@ On OSX/BSD (with `ipfw`), Comcast currently supports only: device, latency, targ
 This will cease to be the case in a future (soon<sup>TM</sup>) update.
 
 ```
-$ comcast --device eth0 --latency=250 --target-bw=1000 --packet-loss=10%
+$ comcast --device=eth0 --latency=250 --target-bw=1000 --packet-loss=10%
 ```
 
 This will add 250ms of latency, limit bandwidth to 1Mbps, and drop 10% of packets to the targetted (on Linux) destination addresses using the specified protocols on the specified port numbers (slow lane). The default bandwidth specified will apply to all egress traffic (fast lane). To turn this off, run the following:
@@ -80,14 +80,14 @@ $ ipfw delete 1
 
 ## Network Condition Profiles
 
-Here's a list of network conditions to that you can plug into Comcast. Please add any more that you may come across.
+Here's a list of network conditions with values that you can plug into Comcast. Please add any more that you may come across.
 
 Name | Latency | Bandwidth | Packet-loss
 :-- | --: | --: | --:
-GPRS good | 500 | 50 | 2
-EDGE good | 300 | 250 | 1.5
-3G(HSDPA) good | 250 | 750 | 1.5
-DIALUP good | 185 | 40 | 2
+GPRS (good) | 500 | 50 | 2
+EDGE (good) | 300 | 250 | 1.5
+3G/HSDPA (good) | 250 | 750 | 1.5
+DIAL-UP (good) | 185 | 40 | 2
 DSL (poor) | 70 | 2000 | 2
 DSL (good) | 40 | 8000 | 0.5
 WIFI (good) | 40 | 30000 | 0.2
