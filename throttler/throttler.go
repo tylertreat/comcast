@@ -1,6 +1,9 @@
 package throttler
 
 import (
+	"bufio"
+	"errors"
+	"fmt"
 	"log"
 	"os"
 	"os/exec"
@@ -40,6 +43,8 @@ type throttler interface {
 	exists(*Config) bool
 	check() string
 }
+
+var DRY bool
 
 func setup(t throttler, c *Config) {
 	if t.exists(c) {
@@ -125,4 +130,45 @@ func osxVersionSupported() bool {
 		return false
 	}
 	return !strings.HasPrefix(string(v), "10.10")
+}
+
+func runCommand(cmd string) error {
+	fmt.Println(cmd)
+	if !DRY {
+		err := exec.Command("/bin/sh", "-c", cmd).Run()
+		return err
+	}
+	return nil
+}
+
+func runCommandGetLines(cmd string) ([]string, error) {
+
+	lines := []string{}
+	child := exec.Command("/bin/sh", "-c", cmd)
+
+	out, err := child.StdoutPipe()
+	if err != nil {
+		return []string{}, err
+	}
+
+	err = child.Start()
+	if err != nil {
+		return []string{}, err
+	}
+
+	scanner := bufio.NewScanner(out)
+
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		return []string{}, errors.New(fmt.Sprint("Error reading standard input:", err))
+	}
+
+	err = child.Wait()
+	if err != nil {
+		return []string{}, err
+	}
+
+	return lines, nil
 }

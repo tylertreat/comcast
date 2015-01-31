@@ -9,7 +9,6 @@ It works by wrapping up some system tools in a portable(ish) way. On BSD-derived
 
 ```
 $ go get github.com/tylertreat/comcast
-$ go install github.com/typertreat/comcast
 ```
 
 ## Usage
