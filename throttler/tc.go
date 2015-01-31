@@ -20,7 +20,7 @@ const (
 	tcDelQDisc     = `sudo tc qdisc del`
 	iptAddTarget   = `sudo iptables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
 	iptDelTarget   = `sudo iptables -D POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
-	iptDestIp      = `-d %s`
+	iptDestIP      = `-d %s`
 	iptProto       = `-p %s`
 	iptDestPorts   = `--match multiport --dports %s`
 	iptDestPort    = `--dport %s`
@@ -155,7 +155,7 @@ func addIptablesRules(c *Config) error {
 	if len(c.TargetIps) > 0 {
 		iprules := []string{}
 		for _, ip := range c.TargetIps {
-			dest := fmt.Sprintf(iptDestIp, ip)
+			dest := fmt.Sprintf(iptDestIP, ip)
 			if len(rules) > 0 {
 				for _, rule := range rules {
 					r := rule + " " + dest
@@ -226,7 +226,7 @@ func delRootQDisc(c *Config) error {
 }
 
 func (t *tcThrottler) exists() bool {
-	if DRY {
+	if dry {
 		return false
 	}
 	err := runCommand(tcExists)

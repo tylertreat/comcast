@@ -44,7 +44,7 @@ type throttler interface {
 	check() string
 }
 
-var DRY bool
+var dry bool
 
 func setup(t throttler, c *Config) {
 	if t.exists() {
@@ -77,7 +77,7 @@ func teardown(t throttler, c *Config) {
 // Run executes the packet filter operation, either setting it up or tearing
 // it down.
 func Run(c *Config) {
-	DRY = c.DryRun
+	dry = c.DryRun
 	var t throttler
 	switch runtime.GOOS {
 	case freebsd:
@@ -135,7 +135,7 @@ func osxVersionSupported() bool {
 
 func runCommand(cmd string) error {
 	fmt.Println(cmd)
-	if !DRY {
+	if !dry {
 		err := exec.Command("/bin/sh", "-c", cmd).Run()
 		return err
 	}

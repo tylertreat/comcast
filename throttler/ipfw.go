@@ -32,7 +32,7 @@ func (i *ipfwThrottler) teardown(_ *Config) error {
 }
 
 func (i *ipfwThrottler) exists() bool {
-	if DRY {
+	if dry {
 		return false
 	}
 	err := runCommand(ipfwExists)
