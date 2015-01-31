@@ -34,9 +34,6 @@ const (
 type tcThrottler struct{}
 
 func (t *tcThrottler) setup(c *Config) error {
-
-	DRY = c.DryRun
-
 	err := addRootQDisc(c) //The root node to append the filters
 	if err != nil {
 		return err
@@ -228,8 +225,8 @@ func delRootQDisc(c *Config) error {
 	return runCommand(cmd)
 }
 
-func (t *tcThrottler) exists(c *Config) bool {
-	if c.DryRun {
+func (t *tcThrottler) exists() bool {
+	if DRY {
 		return false
 	}
 	err := runCommand(tcExists)

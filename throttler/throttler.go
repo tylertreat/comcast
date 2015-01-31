@@ -40,14 +40,14 @@ type Config struct {
 type throttler interface {
 	setup(*Config) error
 	teardown(*Config) error
-	exists(*Config) bool
+	exists() bool
 	check() string
 }
 
 var DRY bool
 
 func setup(t throttler, c *Config) {
-	if t.exists(c) {
+	if t.exists() {
 		log.Fatalln("It looks like the packet rules are already setup")
 	}
 
@@ -61,7 +61,7 @@ func setup(t throttler, c *Config) {
 }
 
 func teardown(t throttler, c *Config) {
-	if !t.exists(c) {
+	if !t.exists() {
 		log.Fatalln("It looks like the packet rules aren't setup")
 	}
 
@@ -77,6 +77,7 @@ func teardown(t throttler, c *Config) {
 // Run executes the packet filter operation, either setting it up or tearing
 // it down.
 func Run(c *Config) {
+	DRY = c.DryRun
 	var t throttler
 	switch runtime.GOOS {
 	case freebsd:
