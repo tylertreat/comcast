@@ -20,7 +20,7 @@ func main() {
 		packetLoss  = flag.String("packet-loss", "0", "Packet loss percentage (eg: 0.1%%)")
 		targetaddr  = flag.String("target-addr", "", "Target addresses, (eg: 10.0.0.1 or 10.0.0.0/24 or 10.0.0.1,192.168.0.0/24)")
 		targetport  = flag.String("target-port", "", "Target port(s) (eg: 80 or 1:65535 or 22,80,443,1000:1010)")
-		targetproto = flag.String("target-proto", "", "Target protocol TCP/UDP (eg: tcp or tcp,udp or icmp)")
+		targetproto = flag.String("target-proto", "tcp,udp,icmp", "Target protocol TCP/UDP (eg: tcp or tcp,udp or icmp)")
 		dryrun      = flag.Bool("dry-run", false, "Specifies whether or not to actually commit the rule changes")
 		//icmptype    = flag.String("icmp-type", "", "icmp message type (eg: reply or reply,request)") //TODO: Maybe later :3
 	)
