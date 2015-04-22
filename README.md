@@ -10,7 +10,7 @@ It works by wrapping up some system tools in a portable(ish) way. On BSD-derived
 ## Installation
 
 ```
-$ go get github.com/tylertreat/comcast
+$ go get github.com/tylertreat/Comcast
 ```
 
 ## Usage
