@@ -31,48 +31,50 @@ const (
 	tcCheck        = `sudo tc -s qdisc`
 )
 
-type tcThrottler struct{}
-
-func (t *tcThrottler) setup(c *Config) error {
-	err := addRootQDisc(c) //The root node to append the filters
-	if err != nil {
-		return err
-	}
-
-	err = addDefaultClass(c) //The default class for all traffic that isn't classified
-	if err != nil {
-		return err
-	}
-
-	err = addTargetClass(c) //The class that the network emulator rule is assigned
-	if err != nil {
-		return err
-	}
-
-	err = addNetemRule(c) //The network emulator rule that contains the desired behavior
-	if err != nil {
-		return err
-	}
-
-	return addIptablesRules(c) //The network emulator rule that contains the desired behavior
+type tcThrottler struct {
+	c commander
 }
 
-func addRootQDisc(c *Config) error {
+func (t *tcThrottler) setup(cfg *Config) error {
+	err := addRootQDisc(cfg, t.c) //The root node to append the filters
+	if err != nil {
+		return err
+	}
+
+	err = addDefaultClass(cfg, t.c) //The default class for all traffic that isn't classified
+	if err != nil {
+		return err
+	}
+
+	err = addTargetClass(cfg, t.c) //The class that the network emulator rule is assigned
+	if err != nil {
+		return err
+	}
+
+	err = addNetemRule(cfg, t.c) //The network emulator rule that contains the desired behavior
+	if err != nil {
+		return err
+	}
+
+	return addIptablesRules(cfg, t.c) //The network emulator rule that contains the desired behavior
+}
+
+func addRootQDisc(cfg *Config, c commander) error {
 	//Add the root QDisc
-	root := fmt.Sprintf(tcRootQDisc, c.Device)
+	root := fmt.Sprintf(tcRootQDisc, cfg.Device)
 	strs := []string{tcAddQDisc, root, "htb"}
 	cmd := strings.Join(strs, " ")
 
-	return runCommand(cmd)
+	return c.execute(cmd)
 }
 
-func addDefaultClass(c *Config) error {
+func addDefaultClass(cfg *Config, c commander) error {
 	//Add the default Class
-	def := fmt.Sprintf(tcDefaultClass, c.Device)
+	def := fmt.Sprintf(tcDefaultClass, cfg.Device)
 	rate := ""
 
-	if c.DefaultBandwidth > 0 {
-		rate = fmt.Sprintf(tcRate, c.DefaultBandwidth)
+	if cfg.DefaultBandwidth > 0 {
+		rate = fmt.Sprintf(tcRate, cfg.DefaultBandwidth)
 	} else {
 		rate = fmt.Sprintf(tcRate, 1000000)
 	}
@@ -80,16 +82,16 @@ func addDefaultClass(c *Config) error {
 	strs := []string{tcAddClass, def, "htb", rate}
 	cmd := strings.Join(strs, " ")
 
-	return runCommand(cmd)
+	return c.execute(cmd)
 }
 
-func addTargetClass(c *Config) error {
+func addTargetClass(cfg *Config, c commander) error {
 	//Add the target Class
-	tar := fmt.Sprintf(tcTargetClass, c.Device)
+	tar := fmt.Sprintf(tcTargetClass, cfg.Device)
 	rate := ""
 
-	if c.DefaultBandwidth > -1 {
-		rate = fmt.Sprintf(tcRate, c.DefaultBandwidth)
+	if cfg.DefaultBandwidth > -1 {
+		rate = fmt.Sprintf(tcRate, cfg.DefaultBandwidth)
 	} else {
 		rate = fmt.Sprintf(tcRate, 1000000)
 	}
@@ -97,46 +99,46 @@ func addTargetClass(c *Config) error {
 	strs := []string{tcAddClass, tar, "htb", rate}
 	cmd := strings.Join(strs, " ")
 
-	return runCommand(cmd)
+	return c.execute(cmd)
 }
 
-func addNetemRule(c *Config) error {
+func addNetemRule(cfg *Config, c commander) error {
 	//Add the Network Emulator rule
-	net := fmt.Sprintf(tcNetemRule, c.Device)
+	net := fmt.Sprintf(tcNetemRule, cfg.Device)
 	strs := []string{tcAddQDisc, net, "netem"}
 
-	if c.Latency > 0 {
-		strs = append(strs, fmt.Sprintf(tcDelay, c.Latency))
+	if cfg.Latency > 0 {
+		strs = append(strs, fmt.Sprintf(tcDelay, cfg.Latency))
 	}
 
-	if c.TargetBandwidth > -1 {
-		strs = append(strs, fmt.Sprintf(tcRate, c.TargetBandwidth))
+	if cfg.TargetBandwidth > -1 {
+		strs = append(strs, fmt.Sprintf(tcRate, cfg.TargetBandwidth))
 	}
 
-	if c.PacketLoss > 0 {
-		strs = append(strs, fmt.Sprintf(tcLoss, strconv.FormatFloat(c.PacketLoss, 'f', 2, 64)))
+	if cfg.PacketLoss > 0 {
+		strs = append(strs, fmt.Sprintf(tcLoss, strconv.FormatFloat(cfg.PacketLoss, 'f', 2, 64)))
 	}
 
 	cmd := strings.Join(strs, " ")
 
-	return runCommand(cmd)
+	return c.execute(cmd)
 }
 
-func addIptablesRules(c *Config) error {
+func addIptablesRules(cfg *Config, c commander) error {
 	rules := []string{}
 	ports := ""
 
-	if len(c.TargetPorts) > 0 {
-		if len(c.TargetPorts) > 1 {
-			prts := strings.Join(c.TargetPorts, ",")
+	if len(cfg.TargetPorts) > 0 {
+		if len(cfg.TargetPorts) > 1 {
+			prts := strings.Join(cfg.TargetPorts, ",")
 			ports = fmt.Sprintf(iptDestPorts, prts)
 		} else {
-			ports = fmt.Sprintf(iptDestPort, c.TargetPorts[0])
+			ports = fmt.Sprintf(iptDestPort, cfg.TargetPorts[0])
 		}
 	}
 
-	if len(c.TargetProtos) > 0 {
-		for _, ptc := range c.TargetProtos {
+	if len(cfg.TargetProtos) > 0 {
+		for _, ptc := range cfg.TargetProtos {
 			proto := fmt.Sprintf(iptProto, ptc)
 			rule := strings.Join([]string{iptAddTarget, proto}, " ")
 
@@ -152,9 +154,9 @@ func addIptablesRules(c *Config) error {
 		rules = []string{iptAddTarget}
 	}
 
-	if len(c.TargetIps) > 0 {
+	if len(cfg.TargetIps) > 0 {
 		iprules := []string{}
-		for _, ip := range c.TargetIps {
+		for _, ip := range cfg.TargetIps {
 			dest := fmt.Sprintf(iptDestIP, ip)
 			if len(rules) > 0 {
 				for _, rule := range rules {
@@ -171,8 +173,7 @@ func addIptablesRules(c *Config) error {
 	}
 
 	for _, rule := range rules {
-		err := runCommand(rule)
-		if err != nil {
+		if err := c.execute(rule); err != nil {
 			return err
 		}
 	}
@@ -180,56 +181,51 @@ func addIptablesRules(c *Config) error {
 	return nil
 }
 
-func (t *tcThrottler) teardown(c *Config) error {
-	err := delIptablesRules()
-	if err != nil {
+func (t *tcThrottler) teardown(cfg *Config) error {
+	if err := delIptablesRules(t.c); err != nil {
 		return err
 	}
 
-	err = delRootQDisc(c) //The root node to append the filters
-	if err != nil {
+	// The root node to append the filters
+	if err := delRootQDisc(cfg, t.c); err != nil {
 		return err
 	}
-
 	return nil
 }
 
-func delIptablesRules() error {
-	lines, err := runCommandGetLines(iptList)
+func delIptablesRules(c commander) error {
+	lines, err := c.executeGetLines(iptList)
 	if err != nil {
 		return err
 	}
 
-	if len(lines) > 0 {
-		for _, line := range lines {
-			if strings.Contains(line, iptDelSearch) {
-				cmd := strings.Replace(line, "-A", iptDel, 1)
-				err = runCommand(cmd)
-				if err != nil {
-					return err
-				}
+	for _, line := range lines {
+		if strings.Contains(line, iptDelSearch) {
+			cmd := strings.Replace(line, "-A", iptDel, 1)
+			err = c.execute(cmd)
+			if err != nil {
+				return err
 			}
 		}
 	}
-
 	return nil
 }
 
-func delRootQDisc(c *Config) error {
+func delRootQDisc(cfg *Config, c commander) error {
 	//Delete the root QDisc
-	root := fmt.Sprintf(tcRootQDisc, c.Device)
+	root := fmt.Sprintf(tcRootQDisc, cfg.Device)
 
 	strs := []string{tcDelQDisc, root}
 	cmd := strings.Join(strs, " ")
 
-	return runCommand(cmd)
+	return c.execute(cmd)
 }
 
 func (t *tcThrottler) exists() bool {
 	if dry {
 		return false
 	}
-	err := runCommand(tcExists)
+	err := t.c.execute(tcExists)
 	return err == nil
 }
 
