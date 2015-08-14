@@ -44,14 +44,23 @@ type throttler interface {
 	check() string
 }
 
+type commander interface {
+	execute(string) error
+	executeGetLines(string) ([]string, error)
+}
+
+type dryRunCommander struct {}
+
+type shellCommander struct {}
+
 var dry bool
 
-func setup(t throttler, c *Config) {
+func setup(t throttler, cfg *Config) {
 	if t.exists() {
 		log.Fatalln("It looks like the packet rules are already setup")
 	}
 
-	if err := t.setup(c); err != nil {
+	if err := t.setup(cfg); err != nil {
 		log.Fatalln("I couldn't setup the packet rules")
 	}
 
@@ -60,12 +69,12 @@ func setup(t throttler, c *Config) {
 	log.Printf("Run `%s --mode %s` to reset\n", os.Args[0], stop)
 }
 
-func teardown(t throttler, c *Config) {
+func teardown(t throttler, cfg *Config) {
 	if !t.exists() {
 		log.Fatalln("It looks like the packet rules aren't setup")
 	}
 
-	if err := t.teardown(c); err != nil {
+	if err := t.teardown(cfg); err != nil {
 		log.Fatalln("Failed to stop packet controls")
 	}
 
@@ -76,16 +85,24 @@ func teardown(t throttler, c *Config) {
 
 // Run executes the packet filter operation, either setting it up or tearing
 // it down.
-func Run(c *Config) {
-	dry = c.DryRun
+func Run(cfg *Config) {
+	dry = cfg.DryRun
 	var t throttler
+	var c commander
+
+	if cfg.DryRun {
+		c = &dryRunCommander{}
+	} else {
+		c = &shellCommander{}
+	}
+
 	switch runtime.GOOS {
 	case freebsd:
-		if c.Device == "" {
+		if cfg.Device == "" {
 			log.Fatalln("Device not specified, unable to default to eth0 on FreeBSD.")
 		}
 
-		t = &ipfwThrottler{}
+		t = &ipfwThrottler{c}
 	case darwin:
 		if runtime.GOOS == darwin && !osxVersionSupported() {
 			// ipfw was removed in OSX 10.10 in favor of pfctl.
@@ -95,17 +112,17 @@ func Run(c *Config) {
 			//t = &pfctlThrottler{}
 		}
 
-		if c.Device == "" {
-			c.Device = "eth0"
+		if cfg.Device == "" {
+			cfg.Device = "eth0"
 		}
 
-		t = &ipfwThrottler{}
+		t = &ipfwThrottler{c}
 	case linux:
-		if c.Device == "" {
-			c.Device = "eth0"
+		if cfg.Device == "" {
+			cfg.Device = "eth0"
 		}
 
-		t = &tcThrottler{}
+		t = &tcThrottler{c}
 	case windows:
 		log.Fatalln("I don't support your OS: %s\n", runtime.GOOS)
 		//log.Fatalln("If you want to use Comcast on Windows, please install wipfw.")
@@ -114,13 +131,13 @@ func Run(c *Config) {
 		log.Fatalln("I don't support your OS: %s\n", runtime.GOOS)
 	}
 
-	switch c.Mode {
+	switch cfg.Mode {
 	case Start:
-		setup(t, c)
+		setup(t, cfg)
 	case stop:
-		teardown(t, c)
+		teardown(t, cfg)
 	default:
-		log.Printf("I don't know what this mode is: %s\n", c.Mode)
+		log.Printf("I don't know what this mode is: %s\n", cfg.Mode)
 		log.Fatalf("Try %q or %q\n", Start, stop)
 	}
 }
@@ -133,17 +150,22 @@ func osxVersionSupported() bool {
 	return !strings.HasPrefix(string(v), "10.10")
 }
 
-func runCommand(cmd string) error {
+func (c *dryRunCommander) execute(cmd string) error {
 	fmt.Println(cmd)
-	if !dry {
-		err := exec.Command("/bin/sh", "-c", cmd).Run()
-		return err
-	}
 	return nil
 }
 
-func runCommandGetLines(cmd string) ([]string, error) {
+func (c *dryRunCommander) executeGetLines(cmd string) ([]string, error) {
+	fmt.Println(cmd)
+	return []string{}, nil
+}
 
+func (c *shellCommander) execute(cmd string) error {
+	fmt.Println(cmd)
+	return exec.Command("/bin/sh", "-c", cmd).Run()
+}
+
+func (c *shellCommander) executeGetLines(cmd string) ([]string, error) {
 	lines := []string{}
 	child := exec.Command("/bin/sh", "-c", cmd)
 

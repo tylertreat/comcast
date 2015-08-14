@@ -12,22 +12,24 @@ const (
 	ipfwCheck    = `sudo ipfw list`
 )
 
-type ipfwThrottler struct{}
+type ipfwThrottler struct {
+	c commander
+}
 
 func (i *ipfwThrottler) setup(c *Config) error {
 	cmd := ipfwAddPipe + c.Device
-	err := runCommand(cmd)
+	err := i.c.execute(cmd)
 	if err != nil {
 		return err
 	}
 
 	configCmd := i.buildConfigCommand(c)
-	err = runCommand(configCmd)
+	err = i.c.execute(configCmd)
 	return err
 }
 
 func (i *ipfwThrottler) teardown(_ *Config) error {
-	err := runCommand(ipfwTeardown)
+	err := i.c.execute(ipfwTeardown)
 	return err
 }
 
@@ -35,7 +37,7 @@ func (i *ipfwThrottler) exists() bool {
 	if dry {
 		return false
 	}
-	err := runCommand(ipfwExists)
+	err := i.c.execute(ipfwExists)
 	return err == nil
 }
 
