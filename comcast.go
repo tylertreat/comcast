@@ -22,6 +22,7 @@ func main() {
 		targetport  = flag.String("target-port", "", "Target port(s) (eg: 80 or 1:65535 or 22,80,443,1000:1010)")
 		targetproto = flag.String("target-proto", "tcp,udp,icmp", "Target protocol TCP/UDP (eg: tcp or tcp,udp or icmp)")
 		dryrun      = flag.Bool("dry-run", false, "Specifies whether or not to actually commit the rule changes")
+		ipv6        = flag.Bool("ipv6", false, "Enable IPv6 support")
 		//icmptype    = flag.String("icmp-type", "", "icmp message type (eg: reply or reply,request)") //TODO: Maybe later :3
 	)
 	flag.Parse()
@@ -37,6 +38,7 @@ func main() {
 		TargetPorts:      parsePorts(*targetport),
 		TargetProtos:     parseProtos(*targetproto),
 		DryRun:           *dryrun,
+		IPv6:             *ipv6,
 	})
 }
 

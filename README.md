@@ -15,11 +15,13 @@ $ go get github.com/tylertreat/comcast
 
 ## Usage
 
-Currently (on Linux), Comcast supports several options: device, latency, target/default bandwidth, packet loss, protocol, and port number
+Currently (on Linux), Comcast supports several options: device, latency, target/default bandwidth, packet loss, ipv6, protocol, and port number
 
 ```
 $ comcast --device=eth0 --latency=250 --target-bw=1000 --default-bw=1000000 --packet-loss=10% --target-addr=8.8.8.8,10.0.0.0/24 --target-proto=tcp,udp,icmp --target-port=80,22,1000:2000
 ```
+
+The `--ipv6` option enables ipv6 target addresses support. You can't mix ipv6 and ipv4 addresses in a single command invocation. In addition, rules added with the `--ipv6` option should be also removed with this option enabled: `comcat --ipv6 --mode=stop`.
 
 On OSX/BSD (with `ipfw`), Comcast currently supports only: device, latency, target bandwidth, packet loss.
 This will cease to be the case in a future (soon<sup>TM</sup>) update.

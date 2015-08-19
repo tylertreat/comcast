@@ -86,7 +86,24 @@ func TestTcMultiplePortsAndIps(t *testing.T) {
 		"sudo iptables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10 -p udp --match multiport --dports 80,8080 -d 1.1.1.1",
 		"sudo iptables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10 -p tcp --match multiport --dports 80,8080 -d 2.2.2.2",
 		"sudo iptables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10 -p udp --match multiport --dports 80,8080 -d 2.2.2.2",
+	})
+}
 
+func TestTcIPv6Setup(t *testing.T) {
+	r := newCmdRecorder()
+	th := &tcThrottler{r}
+	cfg := defaultTestConfig
+	cfg.Device = "eth1"
+	cfg.PacketLoss = 0.2
+	cfg.TargetIps = []string{"2001:db8::1"}
+	cfg.IPv6 = true
+	th.setup(&cfg)
+	r.verifyCommands(t, []string{
+		"sudo tc qdisc add dev eth1 handle 10: root htb",
+		"sudo tc class add dev eth1 parent 10: classid 10:1 htb rate 20000kbit",
+		"sudo tc class add dev eth1 parent 10:1 classid 10:10 htb rate 20000kbit",
+		"sudo tc qdisc add dev eth1 parent 10:10 handle 100: netem loss 0.20%",
+		"sudo ip6tables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10 -p tcp --dport 80 -d 2001:db8::1",
 	})
 }
 
@@ -117,6 +134,30 @@ func TestTcTeardownNoIpTables(t *testing.T) {
 	th.teardown(&defaultTestConfig)
 	r.verifyCommands(t, []string{
 		"sudo iptables -S -t mangle",
+		"sudo tc qdisc del dev eth0 handle 10: root",
+	})
+}
+
+func TestTcIPv6Teardown(t *testing.T) {
+	r := newCmdRecorder()
+	th := &tcThrottler{r}
+	r.responses = [][]string{
+		{
+			"-P PREROUTING ACCEPT",
+			"-P INPUT ACCEPT",
+			"-P FORWARD ACCEPT",
+			"-P OUTPUT ACCEPT",
+			"-P POSTROUTING ACCEPT",
+			"-A POSTROUTING -d 2001:db8::1 -p tcp -m tcp --dport 80 -j CLASSIFY --set-class 0010:0010",
+		},
+	}
+	config := defaultTestConfig
+	config.IPv6 = true
+
+	th.teardown(&config)
+	r.verifyCommands(t, []string{
+		"sudo ip6tables -S -t mangle",
+		"sudo ip6tables -t mangle -D POSTROUTING -d 2001:db8::1 -p tcp -m tcp --dport 80 -j CLASSIFY --set-class 0010:0010",
 		"sudo tc qdisc del dev eth0 handle 10: root",
 	})
 }

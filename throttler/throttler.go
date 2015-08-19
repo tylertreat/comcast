@@ -35,6 +35,7 @@ type Config struct {
 	TargetPorts      []string
 	TargetProtos     []string
 	DryRun           bool
+	IPv6             bool
 }
 
 type throttler interface {
@@ -49,9 +50,9 @@ type commander interface {
 	executeGetLines(string) ([]string, error)
 }
 
-type dryRunCommander struct {}
+type dryRunCommander struct{}
 
-type shellCommander struct {}
+type shellCommander struct{}
 
 var dry bool
 
@@ -64,9 +65,14 @@ func setup(t throttler, cfg *Config) {
 		log.Fatalln("I couldn't setup the packet rules")
 	}
 
+	ipVersionOption := ""
+	if cfg.IPv6 {
+		ipVersionOption = "--ipv6"
+	}
+
 	log.Println("Packet rules setup...")
 	log.Printf("Run `%s` to double check\n", t.check())
-	log.Printf("Run `%s --mode %s` to reset\n", os.Args[0], stop)
+	log.Printf("Run `%s %s --mode %s` to reset\n", os.Args[0], ipVersionOption, stop)
 }
 
 func teardown(t throttler, cfg *Config) {

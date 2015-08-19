@@ -18,15 +18,15 @@ const (
 	tcDelClass     = `sudo tc class del`
 	tcAddQDisc     = `sudo tc qdisc add`
 	tcDelQDisc     = `sudo tc qdisc del`
-	iptAddTarget   = `sudo iptables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
-	iptDelTarget   = `sudo iptables -D POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
+	iptAddTarget   = `sudo %s -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
+	iptDelTarget   = `sudo %s -D POSTROUTING -t mangle -j CLASSIFY --set-class 10:10`
 	iptDestIP      = `-d %s`
 	iptProto       = `-p %s`
 	iptDestPorts   = `--match multiport --dports %s`
 	iptDestPort    = `--dport %s`
 	iptDelSearch   = `class 0010:0010`
-	iptList        = `sudo iptables -S -t mangle`
-	iptDel         = `sudo iptables -t mangle -D`
+	iptList        = `sudo %s -S -t mangle`
+	iptDel         = `sudo %s -t mangle -D`
 	tcExists       = `sudo tc qdisc show | grep "netem"`
 	tcCheck        = `sudo tc -s qdisc`
 )
@@ -137,10 +137,12 @@ func addIptablesRules(cfg *Config, c commander) error {
 		}
 	}
 
+	addTargetCmd := iptablesCmd(cfg, iptAddTarget)
+
 	if len(cfg.TargetProtos) > 0 {
 		for _, ptc := range cfg.TargetProtos {
 			proto := fmt.Sprintf(iptProto, ptc)
-			rule := strings.Join([]string{iptAddTarget, proto}, " ")
+			rule := strings.Join([]string{addTargetCmd, proto}, " ")
 
 			if ptc != "icmp" {
 				if ports != "" {
@@ -151,7 +153,7 @@ func addIptablesRules(cfg *Config, c commander) error {
 			rules = append(rules, rule)
 		}
 	} else {
-		rules = []string{iptAddTarget}
+		rules = []string{addTargetCmd}
 	}
 
 	if len(cfg.TargetIps) > 0 {
@@ -182,7 +184,7 @@ func addIptablesRules(cfg *Config, c commander) error {
 }
 
 func (t *tcThrottler) teardown(cfg *Config) error {
-	if err := delIptablesRules(t.c); err != nil {
+	if err := delIptablesRules(cfg, t.c); err != nil {
 		return err
 	}
 
@@ -193,15 +195,17 @@ func (t *tcThrottler) teardown(cfg *Config) error {
 	return nil
 }
 
-func delIptablesRules(c commander) error {
-	lines, err := c.executeGetLines(iptList)
+func delIptablesRules(cfg *Config, c commander) error {
+	lines, err := c.executeGetLines(iptablesCmd(cfg, iptList))
 	if err != nil {
 		return err
 	}
 
+	delCmdPrefix := iptablesCmd(cfg, iptDel)
+
 	for _, line := range lines {
 		if strings.Contains(line, iptDelSearch) {
-			cmd := strings.Replace(line, "-A", iptDel, 1)
+			cmd := strings.Replace(line, "-A", delCmdPrefix, 1)
 			err = c.execute(cmd)
 			if err != nil {
 				return err
@@ -209,6 +213,14 @@ func delIptablesRules(c commander) error {
 		}
 	}
 	return nil
+}
+
+func iptablesCmd(cfg *Config, cmd string) string {
+	exe := "iptables"
+	if cfg.IPv6 {
+		exe = "ip6tables"
+	}
+	return fmt.Sprintf(cmd, exe)
 }
 
 func delRootQDisc(cfg *Config, c commander) error {
