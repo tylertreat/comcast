@@ -18,14 +18,15 @@ func main() {
 		targetbw    = flag.Int("target-bw", -1, "Target bandwidth limit in kbit/s (slow-lane)")
 		defaultbw   = flag.Int("default-bw", -1, "Default bandwidth limit in kbit/s (fast-lane)")
 		packetLoss  = flag.String("packet-loss", "0", "Packet loss percentage (eg: 0.1%%)")
-		targetaddr  = flag.String("target-addr", "", "Target addresses, (eg: 10.0.0.1 or 10.0.0.0/24 or 10.0.0.1,192.168.0.0/24)")
+		targetaddr  = flag.String("target-addr", "", "Target addresses, (eg: 10.0.0.1 or 10.0.0.0/24 or 10.0.0.1,192.168.0.0/24 or 2001:db8:a::123)")
 		targetport  = flag.String("target-port", "", "Target port(s) (eg: 80 or 1:65535 or 22,80,443,1000:1010)")
 		targetproto = flag.String("target-proto", "tcp,udp,icmp", "Target protocol TCP/UDP (eg: tcp or tcp,udp or icmp)")
 		dryrun      = flag.Bool("dry-run", false, "Specifies whether or not to actually commit the rule changes")
-		ipv6        = flag.Bool("ipv6", false, "Enable IPv6 support")
 		//icmptype    = flag.String("icmp-type", "", "icmp message type (eg: reply or reply,request)") //TODO: Maybe later :3
 	)
 	flag.Parse()
+
+	targetIPv4, targetIPv6 := parseAddrs(*targetaddr)
 
 	throttler.Run(&throttler.Config{
 		Device:           *device,
@@ -34,11 +35,11 @@ func main() {
 		TargetBandwidth:  *targetbw,
 		DefaultBandwidth: *defaultbw,
 		PacketLoss:       parseLoss(*packetLoss),
-		TargetIps:        parseAddrs(*targetaddr),
+		TargetIps:        targetIPv4,
+		TargetIps6:       targetIPv6,
 		TargetPorts:      parsePorts(*targetport),
 		TargetProtos:     parseProtos(*targetproto),
 		DryRun:           *dryrun,
-		IPv6:             *ipv6,
 	})
 }
 
@@ -54,19 +55,28 @@ func parseLoss(loss string) float64 {
 	return l
 }
 
-func parseAddrs(addrs string) []string {
+func parseAddrs(addrs string) ([]string, []string) {
 	adrs := strings.Split(addrs, ",")
-	parsed := []string{}
+	parsedIPv4 := []string{}
+	parsedIPv6 := []string{}
 
 	if addrs != "" {
 		for _, adr := range adrs {
 			ip := net.ParseIP(adr)
 			if ip != nil {
-				parsed = append(parsed, adr)
+				if ip.To4() != nil {
+					parsedIPv4 = append(parsedIPv4, adr)
+				} else {
+					parsedIPv6 = append(parsedIPv6, adr)
+				}
 			} else { //Not a valid single IP, could it be a CIDR?
-				_, net, err := net.ParseCIDR(adr)
+				parsedIP, net, err := net.ParseCIDR(adr)
 				if err == nil {
-					parsed = append(parsed, net.String())
+					if parsedIP.To4() != nil {
+						parsedIPv4 = append(parsedIPv4, net.String())
+					} else {
+						parsedIPv6 = append(parsedIPv6, net.String())
+					}
 				} else {
 					log.Fatalln("Incorrectly specified target IP or CIDR:", adr)
 				}
@@ -74,7 +84,7 @@ func parseAddrs(addrs string) []string {
 		}
 	}
 
-	return parsed
+	return parsedIPv4, parsedIPv6
 }
 
 func parsePorts(ports string) []string {

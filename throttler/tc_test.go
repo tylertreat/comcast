@@ -6,12 +6,12 @@ import (
 
 type cmdRecorder struct {
 	commands     []string
-	responses    [][]string
-	lastResponse int
+	responses    map[string][]string
+	cmdBlackList []string
 }
 
 func newCmdRecorder() *cmdRecorder {
-	return &cmdRecorder{[]string{}, [][]string{}, -1}
+	return &cmdRecorder{[]string{}, map[string][]string{}, []string{}}
 }
 
 func (r *cmdRecorder) execute(cmd string) error {
@@ -21,21 +21,36 @@ func (r *cmdRecorder) execute(cmd string) error {
 
 func (r *cmdRecorder) executeGetLines(cmd string) ([]string, error) {
 	r.execute(cmd)
-	if len(r.responses) > 0 {
-		r.lastResponse = (r.lastResponse + 1) % len(r.responses)
-		return r.responses[r.lastResponse], nil
+	if responses, found := r.responses[cmd]; found {
+		return responses, nil
 	}
 	return []string{}, nil
 }
 
+func (r *cmdRecorder) commandExists(cmd string) bool {
+	for _, blackListed := range r.cmdBlackList {
+		if blackListed == cmd {
+			return false
+		}
+	}
+	return true
+}
+
 func (r *cmdRecorder) verifyCommands(t *testing.T, expected []string) {
 	if len(expected) != len(r.commands) {
+		for i, cmd := range expected {
+			t.Logf("Expected (%d): %s", i, cmd)
+		}
+		for i, cmd := range r.commands {
+			t.Logf("Actual   (%d): %s", i, cmd)
+		}
+
 		t.Fatalf("Expected to see %d commands, got %d", len(expected), len(r.commands))
 	}
 
 	for i, cmd := range expected {
 		if actual := r.commands[i]; actual != cmd {
-			t.Fatalf("Expected to see command `%s`, got `%s`", cmd, actual)
+			t.Fatalf("Expected to see command `%s`, got `%s`", i, cmd, actual)
 		}
 	}
 }
@@ -89,20 +104,20 @@ func TestTcMultiplePortsAndIps(t *testing.T) {
 	})
 }
 
-func TestTcIPv6Setup(t *testing.T) {
+func TestTcMixedIPv6Setup(t *testing.T) {
 	r := newCmdRecorder()
 	th := &tcThrottler{r}
 	cfg := defaultTestConfig
 	cfg.Device = "eth1"
 	cfg.PacketLoss = 0.2
-	cfg.TargetIps = []string{"2001:db8::1"}
-	cfg.IPv6 = true
+	cfg.TargetIps6 = []string{"2001:db8::1"}
 	th.setup(&cfg)
 	r.verifyCommands(t, []string{
 		"sudo tc qdisc add dev eth1 handle 10: root htb",
 		"sudo tc class add dev eth1 parent 10: classid 10:1 htb rate 20000kbit",
 		"sudo tc class add dev eth1 parent 10:1 classid 10:10 htb rate 20000kbit",
 		"sudo tc qdisc add dev eth1 parent 10:10 handle 100: netem loss 0.20%",
+		"sudo iptables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10 -p tcp --dport 80 -d 10.10.10.10",
 		"sudo ip6tables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10 -p tcp --dport 80 -d 2001:db8::1",
 	})
 }
@@ -110,8 +125,8 @@ func TestTcIPv6Setup(t *testing.T) {
 func TestTcTeardown(t *testing.T) {
 	r := newCmdRecorder()
 	th := &tcThrottler{r}
-	r.responses = [][]string{
-		{
+	r.responses = map[string][]string{
+		"sudo iptables -S -t mangle": {
 			"-P PREROUTING ACCEPT",
 			"-P INPUT ACCEPT",
 			"-P FORWARD ACCEPT",
@@ -119,11 +134,19 @@ func TestTcTeardown(t *testing.T) {
 			"-P POSTROUTING ACCEPT",
 			"-A POSTROUTING -d 10.10.10.10 -p tcp -m tcp --dport 80 -j CLASSIFY --set-class 0010:0010",
 		},
+		"sudo ip6tables -S -t mangle": {
+			"-P PREROUTING ACCEPT",
+			"-P INPUT ACCEPT",
+			"-P FORWARD ACCEPT",
+			"-P OUTPUT ACCEPT",
+			"-P POSTROUTING ACCEPT",
+		},
 	}
 	th.teardown(&defaultTestConfig)
 	r.verifyCommands(t, []string{
 		"sudo iptables -S -t mangle",
 		"sudo iptables -t mangle -D POSTROUTING -d 10.10.10.10 -p tcp -m tcp --dport 80 -j CLASSIFY --set-class 0010:0010",
+		"sudo ip6tables -S -t mangle",
 		"sudo tc qdisc del dev eth0 handle 10: root",
 	})
 }
@@ -134,6 +157,7 @@ func TestTcTeardownNoIpTables(t *testing.T) {
 	th.teardown(&defaultTestConfig)
 	r.verifyCommands(t, []string{
 		"sudo iptables -S -t mangle",
+		"sudo ip6tables -S -t mangle",
 		"sudo tc qdisc del dev eth0 handle 10: root",
 	})
 }
@@ -141,8 +165,9 @@ func TestTcTeardownNoIpTables(t *testing.T) {
 func TestTcIPv6Teardown(t *testing.T) {
 	r := newCmdRecorder()
 	th := &tcThrottler{r}
-	r.responses = [][]string{
-		{
+	r.responses = map[string][]string{
+		"sudo iptables -S -t mangle": {},
+		"sudo ip6tables -S -t mangle": {
 			"-P PREROUTING ACCEPT",
 			"-P INPUT ACCEPT",
 			"-P FORWARD ACCEPT",
@@ -152,12 +177,35 @@ func TestTcIPv6Teardown(t *testing.T) {
 		},
 	}
 	config := defaultTestConfig
-	config.IPv6 = true
 
 	th.teardown(&config)
 	r.verifyCommands(t, []string{
+		"sudo iptables -S -t mangle",
 		"sudo ip6tables -S -t mangle",
 		"sudo ip6tables -t mangle -D POSTROUTING -d 2001:db8::1 -p tcp -m tcp --dport 80 -j CLASSIFY --set-class 0010:0010",
+		"sudo tc qdisc del dev eth0 handle 10: root",
+	})
+}
+
+func TestTcTeardownNoIPv6(t *testing.T) {
+	r := newCmdRecorder()
+	r.cmdBlackList = []string{"ip6tables"}
+	th := &tcThrottler{r}
+	r.responses = map[string][]string{
+		"sudo iptables -S -t mangle": {
+			"-P PREROUTING ACCEPT",
+			"-P INPUT ACCEPT",
+			"-P FORWARD ACCEPT",
+			"-P OUTPUT ACCEPT",
+			"-P POSTROUTING ACCEPT",
+			"-A POSTROUTING -d 10.10.10.10 -p tcp -m tcp --dport 80 -j CLASSIFY --set-class 0010:0010",
+		},
+	}
+
+	th.teardown(&defaultTestConfig)
+	r.verifyCommands(t, []string{
+		"sudo iptables -S -t mangle",
+		"sudo iptables -t mangle -D POSTROUTING -d 10.10.10.10 -p tcp -m tcp --dport 80 -j CLASSIFY --set-class 0010:0010",
 		"sudo tc qdisc del dev eth0 handle 10: root",
 	})
 }

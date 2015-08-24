@@ -32,10 +32,10 @@ type Config struct {
 	DefaultBandwidth int
 	PacketLoss       float64
 	TargetIps        []string
+	TargetIps6       []string
 	TargetPorts      []string
 	TargetProtos     []string
 	DryRun           bool
-	IPv6             bool
 }
 
 type throttler interface {
@@ -48,6 +48,7 @@ type throttler interface {
 type commander interface {
 	execute(string) error
 	executeGetLines(string) ([]string, error)
+	commandExists(string) bool
 }
 
 type dryRunCommander struct{}
@@ -65,14 +66,9 @@ func setup(t throttler, cfg *Config) {
 		log.Fatalln("I couldn't setup the packet rules")
 	}
 
-	ipVersionOption := ""
-	if cfg.IPv6 {
-		ipVersionOption = "--ipv6"
-	}
-
 	log.Println("Packet rules setup...")
 	log.Printf("Run `%s` to double check\n", t.check())
-	log.Printf("Run `%s %s --mode %s` to reset\n", os.Args[0], ipVersionOption, stop)
+	log.Printf("Run `%s --mode %s` to reset\n", os.Args[0], stop)
 }
 
 func teardown(t throttler, cfg *Config) {
@@ -166,6 +162,10 @@ func (c *dryRunCommander) executeGetLines(cmd string) ([]string, error) {
 	return []string{}, nil
 }
 
+func (c *dryRunCommander) commandExists(cmd string) bool {
+	return true
+}
+
 func (c *shellCommander) execute(cmd string) error {
 	fmt.Println(cmd)
 	return exec.Command("/bin/sh", "-c", cmd).Run()
@@ -200,4 +200,9 @@ func (c *shellCommander) executeGetLines(cmd string) ([]string, error) {
 	}
 
 	return lines, nil
+}
+
+func (c *shellCommander) commandExists(cmd string) bool {
+	_, err := exec.LookPath(cmd)
+	return err == nil
 }
