@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/exec"
 	"runtime"
-	"strings"
 )
 
 const (
@@ -21,6 +20,8 @@ const (
 	freebsd         = "freebsd"
 	windows         = "windows"
 	checkOSXVersion = "sw_vers -productVersion"
+	ipfw            = "ipfw"
+	pfctl           = "pfctl"
 )
 
 // Config specifies options for configuring packet filter rules.
@@ -63,7 +64,7 @@ func setup(t throttler, cfg *Config) {
 	}
 
 	if err := t.setup(cfg); err != nil {
-		log.Fatalln("I couldn't setup the packet rules")
+		log.Fatalln("I couldn't setup the packet rules: %s", err.Error())
 	}
 
 	log.Println("Packet rules setup...")
@@ -106,19 +107,19 @@ func Run(cfg *Config) {
 
 		t = &ipfwThrottler{c}
 	case darwin:
-		if runtime.GOOS == darwin && !osxVersionSupported() {
-			// ipfw was removed in OSX 10.10 in favor of pfctl.
-			log.Fatalln("I don't support your version of OSX")
-
-			// TODO: add support for pfctl.
-			//t = &pfctlThrottler{}
+		// Avoid OS version pinning and choose based on what's available
+		if c.commandExists(pfctl) {
+			t = &pfctlThrottler{c}
+		} else if c.commandExists(ipfw) {
+			t = &ipfwThrottler{c}
+		} else {
+			log.Fatalln("Could not determine an appropriate firewall tool for OSX (tried pfctl, ipfw), exiting")
 		}
 
 		if cfg.Device == "" {
 			cfg.Device = "eth0"
 		}
 
-		t = &ipfwThrottler{c}
 	case linux:
 		if cfg.Device == "" {
 			cfg.Device = "eth0"
@@ -142,14 +143,6 @@ func Run(cfg *Config) {
 		log.Printf("I don't know what this mode is: %s\n", cfg.Mode)
 		log.Fatalf("Try %q or %q\n", Start, stop)
 	}
-}
-
-func osxVersionSupported() bool {
-	v, err := exec.Command("/bin/sh", "-c", checkOSXVersion).Output()
-	if err != nil {
-		return false
-	}
-	return !strings.HasPrefix(string(v), "10.10")
 }
 
 func (c *dryRunCommander) execute(cmd string) error {
