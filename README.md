@@ -32,7 +32,7 @@ $ comcast --device=eth0 --latency=250 --target-bw=1000 --packet-loss=10%
 This will add 250ms of latency, limit bandwidth to 1Mbps, and drop 10% of packets to the targetted (on Linux) destination addresses using the specified protocols on the specified port numbers (slow lane). The default bandwidth specified will apply to all egress traffic (fast lane). To turn this off, run the following:
 
 ```
-$ comcast --mode stop
+$ comcast --stop
 ```
 
 ## I don't trust you, this code sucks, I hate Go, etc.

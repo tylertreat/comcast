@@ -2,18 +2,19 @@ package main
 
 import (
 	"flag"
-	"github.com/tylertreat/comcast/throttler"
 	"log"
 	"net"
 	"strconv"
 	"strings"
+
+	"github.com/tylertreat/comcast/throttler"
 )
 
 func main() {
 	// TODO: Add support for other options like packet reordering, duplication, etc.
 	var (
 		device      = flag.String("device", "", "Interface (device) to use (defaults to eth0 where applicable)")
-		mode        = flag.String("mode", throttler.Start, "Start or stop packet controls")
+		stop        = flag.Bool("stop", false, "Stop packet controls")
 		latency     = flag.Int("latency", -1, "Latency to add in ms")
 		targetbw    = flag.Int("target-bw", -1, "Target bandwidth limit in kbit/s (slow-lane)")
 		defaultbw   = flag.Int("default-bw", -1, "Default bandwidth limit in kbit/s (fast-lane)")
@@ -30,7 +31,7 @@ func main() {
 
 	throttler.Run(&throttler.Config{
 		Device:           *device,
-		Mode:             *mode,
+		Stop:             *stop,
 		Latency:          *latency,
 		TargetBandwidth:  *targetbw,
 		DefaultBandwidth: *defaultbw,

@@ -11,9 +11,6 @@ import (
 )
 
 const (
-	// Start is the mode to setup packet filter rules.
-	Start           = "start"
-	stop            = "stop"
 	linux           = "linux"
 	darwin          = "darwin"
 	freebsd         = "freebsd"
@@ -26,7 +23,7 @@ const (
 // Config specifies options for configuring packet filter rules.
 type Config struct {
 	Device           string
-	Mode             string
+	Stop             bool
 	Latency          int
 	TargetBandwidth  int
 	DefaultBandwidth int
@@ -68,7 +65,7 @@ func setup(t throttler, cfg *Config) {
 
 	log.Println("Packet rules setup...")
 	log.Printf("Run `%s` to double check\n", t.check())
-	log.Printf("Run `%s --mode %s` to reset\n", os.Args[0], stop)
+	log.Printf("Run `%s --stop` to reset\n", os.Args[0])
 }
 
 func teardown(t throttler, cfg *Config) {
@@ -82,7 +79,7 @@ func teardown(t throttler, cfg *Config) {
 
 	log.Println("Packet rules stopped...")
 	log.Printf("Run `%s` to double check\n", t.check())
-	log.Printf("Run `%s --mode %s` to start\n", os.Args[0], Start)
+	log.Printf("Run `%s` to start\n", os.Args[0])
 }
 
 // Run executes the packet filter operation, either setting it up or tearing
@@ -133,14 +130,10 @@ func Run(cfg *Config) {
 		log.Fatalln("I don't support your OS: %s\n", runtime.GOOS)
 	}
 
-	switch cfg.Mode {
-	case Start:
+	if !cfg.Stop {
 		setup(t, cfg)
-	case stop:
+	} else {
 		teardown(t, cfg)
-	default:
-		log.Printf("I don't know what this mode is: %s\n", cfg.Mode)
-		log.Fatalf("Try %q or %q\n", Start, stop)
 	}
 }
 
