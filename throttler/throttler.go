@@ -14,7 +14,6 @@ const (
 	// Start is the mode to setup packet filter rules.
 	Start           = "start"
 	stop            = "stop"
-	any             = "any"
 	linux           = "linux"
 	darwin          = "darwin"
 	freebsd         = "freebsd"
