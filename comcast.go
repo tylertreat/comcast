@@ -18,12 +18,12 @@ func main() {
 		latency     = flag.Int("latency", -1, "Latency to add in ms")
 		targetbw    = flag.Int("target-bw", -1, "Target bandwidth limit in kbit/s (slow-lane)")
 		defaultbw   = flag.Int("default-bw", -1, "Default bandwidth limit in kbit/s (fast-lane)")
-		packetLoss  = flag.String("packet-loss", "0", "Packet loss percentage (eg: 0.1%%)")
-		targetaddr  = flag.String("target-addr", "", "Target addresses, (eg: 10.0.0.1 or 10.0.0.0/24 or 10.0.0.1,192.168.0.0/24 or 2001:db8:a::123)")
-		targetport  = flag.String("target-port", "", "Target port(s) (eg: 80 or 1:65535 or 22,80,443,1000:1010)")
-		targetproto = flag.String("target-proto", "tcp,udp,icmp", "Target protocol TCP/UDP (eg: tcp or tcp,udp or icmp)")
+		packetLoss  = flag.String("packet-loss", "0", "Packet loss percentage (e.g. 0.1%)")
+		targetaddr  = flag.String("target-addr", "", "Target addresses, (e.g. 10.0.0.1 or 10.0.0.0/24 or 10.0.0.1,192.168.0.0/24 or 2001:db8:a::123)")
+		targetport  = flag.String("target-port", "", "Target port(s) (e.g. 80 or 1:65535 or 22,80,443,1000:1010)")
+		targetproto = flag.String("target-proto", "tcp,udp,icmp", "Target protocol TCP/UDP (e.g. tcp or tcp,udp or icmp)")
 		dryrun      = flag.Bool("dry-run", false, "Specifies whether or not to actually commit the rule changes")
-		//icmptype    = flag.String("icmp-type", "", "icmp message type (eg: reply or reply,request)") //TODO: Maybe later :3
+		//icmptype    = flag.String("icmp-type", "", "icmp message type (e.g. reply or reply,request)") //TODO: Maybe later :3
 	)
 	flag.Parse()
 
