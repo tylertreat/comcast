@@ -10,6 +10,8 @@ import (
 	"github.com/tylertreat/comcast/throttler"
 )
 
+const version = "1.0.0"
+
 func main() {
 	// TODO: Add support for other options like packet reordering, duplication, etc.
 	var (
@@ -23,9 +25,14 @@ func main() {
 		targetport  = flag.String("target-port", "", "Target port(s) (e.g. 80 or 1:65535 or 22,80,443,1000:1010)")
 		targetproto = flag.String("target-proto", "tcp,udp,icmp", "Target protocol TCP/UDP (e.g. tcp or tcp,udp or icmp)")
 		dryrun      = flag.Bool("dry-run", false, "Specifies whether or not to actually commit the rule changes")
-		//icmptype    = flag.String("icmp-type", "", "icmp message type (e.g. reply or reply,request)") //TODO: Maybe later :3
+		//icmptype  = flag.String("icmp-type", "", "icmp message type (e.g. reply or reply,request)") //TODO: Maybe later :3
+		version     = flag.Bool("version", false, "Print Comcast's version")
 	)
 	flag.Parse()
+
+	if version {
+		log.Printf("v%s", version)
+	}
 
 	targetIPv4, targetIPv6 := parseAddrs(*targetaddr)
 
