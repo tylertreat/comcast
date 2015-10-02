@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"runtime"
@@ -56,30 +55,34 @@ var dry bool
 
 func setup(t throttler, cfg *Config) {
 	if t.exists() {
-		log.Fatalln("It looks like the packet rules are already setup")
+		fmt.Println("It looks like the packet rules are already setup")
+		os.Exit(1)
 	}
 
 	if err := t.setup(cfg); err != nil {
-		log.Fatalln("I couldn't setup the packet rules: %s", err.Error())
+		fmt.Println("I couldn't setup the packet rules: %s", err.Error())
+		os.Exit(1)
 	}
 
-	log.Println("Packet rules setup...")
-	log.Printf("Run `%s` to double check\n", t.check())
-	log.Printf("Run `%s --stop` to reset\n", os.Args[0])
+	fmt.Println("Packet rules setup...")
+	fmt.Printf("Run `%s` to double check\n", t.check())
+	fmt.Printf("Run `%s --stop` to reset\n", os.Args[0])
 }
 
 func teardown(t throttler, cfg *Config) {
 	if !t.exists() {
-		log.Fatalln("It looks like the packet rules aren't setup")
+		fmt.Println("It looks like the packet rules aren't setup")
+		os.Exit(1)
 	}
 
 	if err := t.teardown(cfg); err != nil {
-		log.Fatalln("Failed to stop packet controls")
+		fmt.Println("Failed to stop packet controls")
+		os.Exit(1)
 	}
 
-	log.Println("Packet rules stopped...")
-	log.Printf("Run `%s` to double check\n", t.check())
-	log.Printf("Run `%s` to start\n", os.Args[0])
+	fmt.Println("Packet rules stopped...")
+	fmt.Printf("Run `%s` to double check\n", t.check())
+	fmt.Printf("Run `%s` to start\n", os.Args[0])
 }
 
 // Run executes the packet filter operation, either setting it up or tearing
@@ -98,7 +101,8 @@ func Run(cfg *Config) {
 	switch runtime.GOOS {
 	case freebsd:
 		if cfg.Device == "" {
-			log.Fatalln("Device not specified, unable to default to eth0 on FreeBSD.")
+			fmt.Println("Device not specified, unable to default to eth0 on FreeBSD.")
+			os.Exit(1)
 		}
 
 		t = &ipfwThrottler{c}
@@ -109,7 +113,8 @@ func Run(cfg *Config) {
 		} else if c.commandExists(ipfw) {
 			t = &ipfwThrottler{c}
 		} else {
-			log.Fatalln("Could not determine an appropriate firewall tool for OSX (tried pfctl, ipfw), exiting")
+			fmt.Println("Could not determine an appropriate firewall tool for OSX (tried pfctl, ipfw), exiting")
+			os.Exit(1)
 		}
 
 		if cfg.Device == "" {
@@ -122,12 +127,9 @@ func Run(cfg *Config) {
 		}
 
 		t = &tcThrottler{c}
-	case windows:
-		log.Fatalln("I don't support your OS: %s\n", runtime.GOOS)
-		//log.Fatalln("If you want to use Comcast on Windows, please install wipfw.")
-		//t = &wipfwThrottler{}
 	default:
-		log.Fatalln("I don't support your OS: %s\n", runtime.GOOS)
+		fmt.Println("I don't support your OS: %s\n", runtime.GOOS)
+		os.Exit(1)
 	}
 
 	if !cfg.Stop {

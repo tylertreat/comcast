@@ -2,8 +2,9 @@ package main
 
 import (
 	"flag"
-	"log"
+	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 
@@ -31,7 +32,7 @@ func main() {
 	flag.Parse()
 
 	if *vers {
-		log.Printf("v%s", version)
+		fmt.Printf("Comcast version %s\n", version)
 		return
 	}
 
@@ -59,7 +60,8 @@ func parseLoss(loss string) float64 {
 	}
 	l, err := strconv.ParseFloat(val, 64)
 	if err != nil {
-		log.Fatalln("Incorrectly specified packet loss:", loss)
+		fmt.Println("Incorrectly specified packet loss:", loss)
+		os.Exit(1)
 	}
 	return l
 }
@@ -87,7 +89,8 @@ func parseAddrs(addrs string) ([]string, []string) {
 						parsedIPv6 = append(parsedIPv6, net.String())
 					}
 				} else {
-					log.Fatalln("Incorrectly specified target IP or CIDR:", adr)
+					fmt.Println("Incorrectly specified target IP or CIDR:", adr)
+					os.Exit(1)
 				}
 			}
 		}
@@ -106,13 +109,15 @@ func parsePorts(ports string) []string {
 				if validRange(prt) {
 					parsed = append(parsed, prt)
 				} else {
-					log.Fatalln("Incorrectly specified port range:", prt)
+					fmt.Println("Incorrectly specified port range:", prt)
+					os.Exit(1)
 				}
 			} else { //Isn't a range, check if just a single port
 				if validPort(prt) {
 					parsed = append(parsed, prt)
 				} else {
-					log.Fatalln("Incorrectly specified port:", prt)
+					fmt.Println("Incorrectly specified port:", prt)
+					os.Exit(1)
 				}
 			}
 		}
@@ -172,7 +177,8 @@ func parseProtos(protos string) []string {
 				p == "icmp" {
 				parsed = append(parsed, p)
 			} else {
-				log.Fatalln("Incorrectly specified protocol:", p)
+				fmt.Println("Incorrectly specified protocol:", p)
+				os.Exit(1)
 			}
 		}
 	}
