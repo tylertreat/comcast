@@ -26,12 +26,13 @@ func main() {
 		targetproto = flag.String("target-proto", "tcp,udp,icmp", "Target protocol TCP/UDP (e.g. tcp or tcp,udp or icmp)")
 		dryrun      = flag.Bool("dry-run", false, "Specifies whether or not to actually commit the rule changes")
 		//icmptype  = flag.String("icmp-type", "", "icmp message type (e.g. reply or reply,request)") //TODO: Maybe later :3
-		version     = flag.Bool("version", false, "Print Comcast's version")
+		vers = flag.Bool("version", false, "Print Comcast's version")
 	)
 	flag.Parse()
 
-	if version {
+	if *vers {
 		log.Printf("v%s", version)
+		return
 	}
 
 	targetIPv4, targetIPv6 := parseAddrs(*targetaddr)
