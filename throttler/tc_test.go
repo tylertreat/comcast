@@ -57,7 +57,7 @@ func (r *cmdRecorder) verifyCommands(t *testing.T, expected []string) {
 
 var defaultTestConfig = Config{
 	Device:           "eth0",
-	Mode:             Start,
+	Stop:             false,
 	Latency:          -1,
 	TargetBandwidth:  -1,
 	DefaultBandwidth: 20000,

@@ -29,7 +29,7 @@ func TestPfctlThrottleOnlyConfigCommand(t *testing.T) {
 
 	var c = Config{
 		Device:           "eth0",
-		Mode:             Start,
+		Stop:             false,
 		Latency:          -1,
 		TargetBandwidth:  -1,
 		DefaultBandwidth: 20000,
@@ -50,7 +50,7 @@ func TestPfctlNoIPThrottleConfigCommand(t *testing.T) {
 
 	var c = Config{
 		Device:           "eth0",
-		Mode:             Start,
+		Stop:             false,
 		Latency:          -1,
 		TargetBandwidth:  -1,
 		DefaultBandwidth: 20000,
