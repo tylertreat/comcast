@@ -2,8 +2,10 @@ package throttler
 
 import (
 	"fmt"
+	"os/exec"
 	"strconv"
 	"strings"
+	"syscall"
 )
 
 const (
@@ -217,6 +219,19 @@ func delIptablesRules(cfg *Config, c commander) error {
 		}
 		lines, err := c.executeGetLines(fmt.Sprintf(iptList, iptablesCommand))
 		if err != nil {
+			// ignore exit code 3 from iptables, which might happen if the system
+			// has the ip6tables command, but no IPv6 capabilities
+			werr, ok := err.(*exec.ExitError)
+			if !ok {
+				return err
+			}
+			status, ok := werr.Sys().(syscall.WaitStatus)
+			if !ok {
+				return err
+			}
+			if status.ExitStatus() == 3 {
+				continue
+			}
 			return err
 		}
 
