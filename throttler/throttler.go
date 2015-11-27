@@ -60,7 +60,7 @@ func setup(t throttler, cfg *Config) {
 	}
 
 	if err := t.setup(cfg); err != nil {
-		fmt.Println("I couldn't setup the packet rules: %s", err.Error())
+		fmt.Println("I couldn't setup the packet rules:", err.Error())
 		os.Exit(1)
 	}
 
