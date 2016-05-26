@@ -66,7 +66,7 @@ func setup(t throttler, cfg *Config) {
 
 	fmt.Println("Packet rules setup...")
 	fmt.Printf("Run `%s` to double check\n", t.check())
-	fmt.Printf("Run `%s --stop` to reset\n", os.Args[0])
+	fmt.Printf("Run `%s --device %s --stop` to reset\n", os.Args[0], cfg.Device)
 }
 
 func teardown(t throttler, cfg *Config) {
