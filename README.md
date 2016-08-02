@@ -1,6 +1,6 @@
 #Comcast
 
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/tylertreat/Comcast?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/tylertreat/Comcast?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) ![Savage](https://img.shields.io/badge/-Savage-red.svg)
 
 
 Testing distributed systems under hard failures like network partitions and instance termination is critical, but it's also important we test them under [less catastrophic conditions](http://www.bravenewgeek.com/sometimes-kill-9-isnt-enough/) because this is what they most often experience. Comcast is a tool designed to simulate common network problems like latency, bandwidth restrictions, and dropped/reordered/corrupted packets.
