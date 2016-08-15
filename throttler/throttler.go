@@ -128,7 +128,7 @@ func Run(cfg *Config) {
 
 		t = &tcThrottler{c}
 	default:
-		fmt.Println("I don't support your OS: %s\n", runtime.GOOS)
+		fmt.Printf("I don't support your OS: %s\n", runtime.GOOS)
 		os.Exit(1)
 	}
 
