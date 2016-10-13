@@ -10,8 +10,9 @@ import (
 
 const (
 	tcRootQDisc    = `dev %s handle 10: root`
+	tcRootExtra    = `default 1`
 	tcDefaultClass = `dev %s parent 10: classid 10:1`
-	tcTargetClass  = `dev %s parent 10:1 classid 10:10`
+	tcTargetClass  = `dev %s parent 10: classid 10:10`
 	tcNetemRule    = `dev %s parent 10:10 handle 100:`
 	tcRate         = `rate %vkbit`
 	tcDelay        = `delay %vms`
@@ -66,7 +67,7 @@ func (t *tcThrottler) setup(cfg *Config) error {
 func addRootQDisc(cfg *Config, c commander) error {
 	//Add the root QDisc
 	root := fmt.Sprintf(tcRootQDisc, cfg.Device)
-	strs := []string{tcAddQDisc, root, "htb"}
+	strs := []string{tcAddQDisc, root, "htb", tcRootExtra}
 	cmd := strings.Join(strs, " ")
 
 	return c.execute(cmd)
@@ -94,8 +95,8 @@ func addTargetClass(cfg *Config, c commander) error {
 	tar := fmt.Sprintf(tcTargetClass, cfg.Device)
 	rate := ""
 
-	if cfg.DefaultBandwidth > -1 {
-		rate = fmt.Sprintf(tcRate, cfg.DefaultBandwidth)
+	if cfg.TargetBandwidth > -1 {
+		rate = fmt.Sprintf(tcRate, cfg.TargetBandwidth)
 	} else {
 		rate = fmt.Sprintf(tcRate, 1000000)
 	}
