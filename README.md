@@ -35,6 +35,8 @@ This will add 250ms of latency, limit bandwidth to 1Mbps, and drop 10% of packet
 $ comcast --stop
 ```
 
+By default, comcast will determine the system commands to execute, log them to stdout, and execute them. The `--dry-run` flag will skip execution.
+
 ## I don't trust you, this code sucks, I hate Go, etc.
 
 If you don't like running code that executes shell commands for you (despite it being open source, so you can read it and change the code) or want finer-grained control, you can run them directly instead. Read the man pages on these things for more details.
