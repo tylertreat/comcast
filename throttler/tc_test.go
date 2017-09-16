@@ -50,7 +50,7 @@ func (r *cmdRecorder) verifyCommands(t *testing.T, expected []string) {
 
 	for i, cmd := range expected {
 		if actual := r.commands[i]; actual != cmd {
-			t.Fatalf("Expected to see command `%s`, got `%s`", i, cmd, actual)
+			t.Fatalf("Expected to see command `%s`, got `%s`", cmd, actual)
 		}
 	}
 }
@@ -76,11 +76,30 @@ func TestTcPacketLossSetup(t *testing.T) {
 	cfg.PacketLoss = 0.2
 	th.setup(&cfg)
 	r.verifyCommands(t, []string{
-		"sudo tc qdisc add dev eth1 handle 10: root htb",
+		"sudo tc qdisc add dev eth1 handle 10: root htb default 1",
 		"sudo tc class add dev eth1 parent 10: classid 10:1 htb rate 20000kbit",
-		"sudo tc class add dev eth1 parent 10:1 classid 10:10 htb rate 20000kbit",
+		"sudo tc class add dev eth1 parent 10: classid 10:10 htb rate 1000000kbit",
 		"sudo tc qdisc add dev eth1 parent 10:10 handle 100: netem loss 0.20%",
 		"sudo iptables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10 -p tcp --dport 80 -d 10.10.10.10",
+	})
+}
+
+func TestTcWildcardIps(t *testing.T) {
+	r := newCmdRecorder()
+	th := &tcThrottler{r}
+	cfg := defaultTestConfig
+	cfg.TargetIps = []string{}
+	cfg.TargetPorts  = []string{}
+	cfg.TargetProtos  = []string{}
+	cfg.PacketLoss = -1
+	th.setup(&cfg)
+	r.verifyCommands(t, []string{
+		"sudo tc qdisc add dev eth0 handle 10: root htb default 1",
+		"sudo tc class add dev eth0 parent 10: classid 10:1 htb rate 20000kbit",
+		"sudo tc class add dev eth0 parent 10: classid 10:10 htb rate 1000000kbit",
+		"sudo tc qdisc add dev eth0 parent 10:10 handle 100: netem",
+		"sudo iptables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10",
+		"sudo ip6tables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10",
 	})
 }
 
@@ -93,9 +112,9 @@ func TestTcMultiplePortsAndIps(t *testing.T) {
 	cfg.TargetProtos = []string{"tcp", "udp"}
 	th.setup(&cfg)
 	r.verifyCommands(t, []string{
-		"sudo tc qdisc add dev eth0 handle 10: root htb",
+		"sudo tc qdisc add dev eth0 handle 10: root htb default 1",
 		"sudo tc class add dev eth0 parent 10: classid 10:1 htb rate 20000kbit",
-		"sudo tc class add dev eth0 parent 10:1 classid 10:10 htb rate 20000kbit",
+		"sudo tc class add dev eth0 parent 10: classid 10:10 htb rate 1000000kbit",
 		"sudo tc qdisc add dev eth0 parent 10:10 handle 100: netem loss 0.10%",
 		"sudo iptables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10 -p tcp --match multiport --dports 80,8080 -d 1.1.1.1",
 		"sudo iptables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10 -p udp --match multiport --dports 80,8080 -d 1.1.1.1",
@@ -113,9 +132,9 @@ func TestTcMixedIPv6Setup(t *testing.T) {
 	cfg.TargetIps6 = []string{"2001:db8::1"}
 	th.setup(&cfg)
 	r.verifyCommands(t, []string{
-		"sudo tc qdisc add dev eth1 handle 10: root htb",
+		"sudo tc qdisc add dev eth1 handle 10: root htb default 1",
 		"sudo tc class add dev eth1 parent 10: classid 10:1 htb rate 20000kbit",
-		"sudo tc class add dev eth1 parent 10:1 classid 10:10 htb rate 20000kbit",
+		"sudo tc class add dev eth1 parent 10: classid 10:10 htb rate 1000000kbit",
 		"sudo tc qdisc add dev eth1 parent 10:10 handle 100: netem loss 0.20%",
 		"sudo iptables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10 -p tcp --dport 80 -d 10.10.10.10",
 		"sudo ip6tables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10 -p tcp --dport 80 -d 2001:db8::1",
