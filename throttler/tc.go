@@ -131,6 +131,15 @@ func addNetemRule(cfg *Config, c commander) error {
 
 func addIptablesRules(cfg *Config, c commander) error {
 	var err error
+	if len(cfg.TargetIps) == 0 && len(cfg.TargetIps6) == 0 {
+		if err == nil {
+			err = addIptablesRulesForAddrs(cfg, c, ip4Tables, cfg.TargetIps)
+		}
+		if err == nil {
+			err = addIptablesRulesForAddrs(cfg, c, ip6Tables, cfg.TargetIps6)
+		}
+		return err
+	}
 	if err == nil && len(cfg.TargetIps) > 0 {
 		err = addIptablesRulesForAddrs(cfg, c, ip4Tables, cfg.TargetIps)
 	}

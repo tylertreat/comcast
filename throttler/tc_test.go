@@ -84,6 +84,25 @@ func TestTcPacketLossSetup(t *testing.T) {
 	})
 }
 
+func TestTcWildcardIps(t *testing.T) {
+	r := newCmdRecorder()
+	th := &tcThrottler{r}
+	cfg := defaultTestConfig
+	cfg.TargetIps = []string{}
+	cfg.TargetPorts  = []string{}
+	cfg.TargetProtos  = []string{}
+	cfg.PacketLoss = -1
+	th.setup(&cfg)
+	r.verifyCommands(t, []string{
+		"sudo tc qdisc add dev eth0 handle 10: root htb default 1",
+		"sudo tc class add dev eth0 parent 10: classid 10:1 htb rate 20000kbit",
+		"sudo tc class add dev eth0 parent 10: classid 10:10 htb rate 1000000kbit",
+		"sudo tc qdisc add dev eth0 parent 10:10 handle 100: netem",
+		"sudo iptables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10",
+		"sudo ip6tables -A POSTROUTING -t mangle -j CLASSIFY --set-class 10:10",
+	})
+}
+
 func TestTcMultiplePortsAndIps(t *testing.T) {
 	r := newCmdRecorder()
 	th := &tcThrottler{r}
