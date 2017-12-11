@@ -1,8 +1,5 @@
 # Comcast
 
-[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/tylertreat/Comcast?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
-
 Testing distributed systems under hard failures like network partitions and instance termination is critical, but it's also important we test them under [less catastrophic conditions](http://www.bravenewgeek.com/sometimes-kill-9-isnt-enough/) because this is what they most often experience. Comcast is a tool designed to simulate common network problems like latency, bandwidth restrictions, and dropped/reordered/corrupted packets.
 
 It works by wrapping up some system tools in a portable(ish) way. On BSD-derived systems such as OSX, we use tools like `ipfw` and `pfctl` to inject failure. On Linux, we use `iptables` and `tc`. Comcast is merely a thin wrapper around these controls. Windows support may be possible with `wipfw` or even the native network stack, but this has not yet been implemented in Comcast and may be at a later date.
