@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/tylertreat/comcast/throttler"
+	"github.com/sendgrid/comcast/throttler"
 )
 
 const version = "1.0.0"
