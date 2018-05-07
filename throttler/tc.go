@@ -181,6 +181,18 @@ func addIptablesRulesForAddrs(cfg *Config, c commander, command string, addrs []
 		rules = []string{addTargetCmd}
 	}
 
+	if len(addrs) == 0 && len(cfg.TargetPorts) > 0 {
+		iprules := []string{}
+		if len(rules) > 0 {
+			for _, rule := range rules {
+				iprules = append(iprules, rule)
+			}
+		}
+		if len(iprules) > 0 {
+			rules = iprules
+		}
+	}
+
 	if len(addrs) > 0 {
 		iprules := []string{}
 		for _, ip := range addrs {
