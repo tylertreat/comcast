@@ -1,4 +1,4 @@
-language: go
+language: golang
 
 go:
   - 1.8.x
@@ -7,4 +7,4 @@ go:
   - 1.11.x
 
 script:
-  - go test -v ./...
+  - go test -v ./throttler/...
