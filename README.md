@@ -62,7 +62,7 @@ $ tc qdisc del dev eth0 root netem
 
 ### BSD/OSX
 
-To shape traffic in BSD-derived systems, create an `ipfw` pipe and configure it. You can control incoming and outgoing traffic separately for any specific host or network.
+To shape traffic in BSD-derived systems, create an `ipfw` pipe and configure it. You can control incoming and outgoing traffic separately as well as which hosts are affected if you want.
 
 ```
 $ ipfw add 1 pipe 1 ip from me to any

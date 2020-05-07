@@ -154,6 +154,10 @@ func addIpsAndProtoToCommands(ipVersion int, cmds []string, ips []string, protos
 		}
 	}
 
+	if len(ips) == 0 {
+
+	}
+
 	return commands
 }
 
