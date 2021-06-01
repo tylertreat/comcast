@@ -91,4 +91,4 @@ DIAL-UP (good) | 185 | 40 | 2
 DSL (poor) | 70 | 2000 | 2
 DSL (good) | 40 | 8000 | 0.5
 WIFI (good) | 40 | 30000 | 0.2
-Satellite | 1500 | - | 0.2
+Starlink | 20 | - | 2.5
