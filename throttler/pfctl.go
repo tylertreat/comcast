@@ -12,7 +12,7 @@ const (
 	pfctlCreateAnchor    = `(cat /etc/pf.conf && echo "dummynet-anchor \"mop\"" && echo "anchor \"mop\"") | sudo pfctl -f -`
 	pfctlTeardown        = `sudo pfctl -f /etc/pf.conf`
 	dnctl                = `sudo dnctl pipe 1 config`
-	pfctlCreateDummynet  = `echo $'dummynet in all pipe 1'`
+	pfctlCreateDummynet  = `echo $'dummynet in on %s all pipe 1'`
 	pfctlExecuteInline   = `%s | sudo pfctl -a mop -f - `
 	pfctlEnableFirewall  = `sudo pfctl -E`
 	pfctlEnableFwRegex   = `pf enabled`
@@ -58,11 +58,12 @@ func (i *pfctlThrottler) setup(c *Config) error {
 	}
 
 	// Add 'execute' portion of the command
-	cmd := fmt.Sprintf(pfctlExecuteInline, pfctlCreateDummynet)
+	input := fmt.Sprintf(pfctlCreateDummynet, c.Device)
+	cmd := fmt.Sprintf(pfctlExecuteInline, input)
 
 	err = i.c.execute(cmd)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Could not create dummynet using: `%s`. Error: %s", pfctlCreateDummynet, err.Error()))
+		return errors.New(fmt.Sprintf("Could not create dummynet using: `%s`. Error: %s", input, err.Error()))
 	}
 
 	// Apply the shaping etc.
