@@ -1,4 +1,4 @@
-module github.com/milzero/comcast
+module github.com/tylertreat/comcast
 
 go 1.15
 
