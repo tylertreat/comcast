@@ -89,8 +89,8 @@ func TestTcWildcardIps(t *testing.T) {
 	th := &tcThrottler{r}
 	cfg := defaultTestConfig
 	cfg.TargetIps = []string{}
-	cfg.TargetPorts  = []string{}
-	cfg.TargetProtos  = []string{}
+	cfg.TargetPorts = []string{}
+	cfg.TargetProtos = []string{}
 	cfg.PacketLoss = -1
 	th.setup(&cfg)
 	r.verifyCommands(t, []string{
