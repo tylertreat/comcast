@@ -10,6 +10,18 @@ It works by wrapping up some system tools in a portable(ish) way. On BSD-derived
 $ go install github.com/tylertreat/comcast@latest
 ```
 
+## Issues
+sudo tc qdisc show | grep "netem"
+sudo tc qdisc add dev <dev>. handle 10: root htb
+I couldn't setup the packet rules: exit status 1
+
+```
+$ sudo yum install -y iproute-tc
+
+$ sudo yum -y install kernel-modules-extra
+```
+
+
 ## Usage
 
 On Linux, Comcast supports several options: device, latency, target/default bandwidth, packet loss, protocol, and port number.
