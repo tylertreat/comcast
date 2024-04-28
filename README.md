@@ -10,6 +10,13 @@ It works by wrapping up some system tools in a portable(ish) way. On BSD-derived
 $ go install github.com/tylertreat/comcast@latest
 ```
 
+### Path addition may be needed
+
+In unix-like systems, after installing comcast with go, it may be needed to add it to the `PATH`. Go installs by default in `$HOME/go/bin`.
+```
+$ export PATH=$PATH:$HOME/go/bin
+```
+
 ## Usage
 
 On Linux, Comcast supports several options: device, latency, target/default bandwidth, packet loss, protocol, and port number.
